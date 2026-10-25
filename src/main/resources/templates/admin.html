@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Churrasquinho System</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        .menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card h2 {
+            margin-top: 0;
+        }
+
+        .card p {
+            flex-grow: 1;
+        }
+
+        .card a {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 15px;
+            background-color: #8b0000;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+            transition: 0.2s;
+        }
+
+        .card a:hover {
+            background-color: #650000;
+        }
+
+        header a[href="/admin"] {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ⬇️ HEADER UNIFICADO -->
+    <div th:replace="~{fragments/header :: header('Menu administrativo')}"></div>
+
+    <main>
+
+        <h2>Menu Administrativo</h2>
+
+        <div class="menu">
+
+            <div class="card">
+                <h2>Categorias</h2>
+                <p>Gerencie as categorias dos produtos.</p>
+                <a href="/categorias/tela">Acessar</a>
+            </div>
+
+            <div class="card">
+                <h2>Produtos</h2>
+                <p>Gerencie os produtos e seus estoques.</p>
+                <a href="/produtos/tela">Acessar</a>
+            </div>
+
+            <div class="card">
+                <h2>Clientes</h2>
+                <p>Gerencie os clientes cadastrados.</p>
+                <a href="/clientes/tela">Acessar</a>
+            </div>
+
+            <div class="card">
+                <h2>Pedidos</h2>
+                <p>Gerencie pedidos e seus itens.</p>
+                <a href="/pedidos/tela">Acessar</a>
+            </div>
+
+            <div class="card">
+                <h2>Pagamentos</h2>
+                <p>Consulte e gerencie os pagamentos.</p>
+                <a href="/pagamentos/tela">Acessar</a>
+            </div>
+
+            <div class="card">
+                <h2>Entregas</h2>
+                <p>Consulte e gerencie as entregas.</p>
+                <a href="/entregas/tela">Acessar</a>
+            </div>
+
+            <div class="card">
+                <h2>Usuários</h2>
+                <p>Gerencie usuários do sistema (ADM, Cliente, Entregador).</p>
+                <a href="/usuarios/tela">Acessar</a>
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+
+</html>

@@ -1,0 +1,1496 @@
+GET http://localhost:8080/clientes
+
+###
+
+POST http://localhost:8080/clientes
+Content-Type: application/json
+
+{
+    "nome": "João da Silva",
+    "cpf": "12345678901",
+    "telefone": "5599999999999",
+    "email": "joao.silva@email.com",
+    "logradouro": "Rua das Flores",
+    "numero": "100",
+    "bairro": "Centro",
+    "cidade": "Santa Maria",
+    "estado": "RS",
+    "cep": "97000000"
+}
+
+###
+
+GET http://localhost:8080/categorias
+
+###
+
+POST http://localhost:8080/categorias
+Content-Type: application/json
+
+{
+    "nome": "Churrasquinhos",
+    "descricao": "Churrasquinhos preparados na brasa"
+}
+
+###
+
+GET http://localhost:8080/categorias/1
+
+###
+
+GET http://localhost:8080/categorias/999
+
+###
+
+GET http://localhost:8080/produtos
+
+###
+
+POST http://localhost:8080/produtos
+Content-Type: application/json
+
+{
+    "nome": "Churrasquinho de Carne",
+    "descricao": "Churrasquinho de carne bovina preparado na brasa",
+    "preco": 10.00,
+    "categoria": {
+        "id": 1
+    }
+}
+
+###
+
+POST http://localhost:8080/produtos
+Content-Type: application/json
+
+{
+    "nome": "Churrasquinho de Frango",
+    "descricao": "Churrasquinho de frango preparado na brasa",
+    "preco": 9.00,
+    "categoria": {
+        "id": 1
+    }
+}
+
+###
+
+GET http://localhost:8080/produtos/2
+
+###
+
+DELETE http://localhost:8080/produtos/2
+
+###
+
+GET http://localhost:8080/produtos
+
+###
+
+GET http://localhost:8080/pedidos
+
+
+###
+
+POST http://localhost:8080/pedidos
+Content-Type: application/json
+
+{
+    "cliente": {
+        "id": 1
+    }
+}
+
+###
+
+GET http://localhost:8080/itens-pedido
+
+###
+
+POST http://localhost:8080/itens-pedido
+Content-Type: application/json
+
+{
+    "pedido": {
+        "id": 1
+    },
+    "produto": {
+        "id": 1
+    },
+    "quantidade": 2
+}
+
+###
+
+GET http://localhost:8080/pedidos/1
+
+###
+
+GET http://localhost:8080/pagamentos
+
+###
+POST http://localhost:8080/pagamentos
+Content-Type: application/json
+
+{
+    "pedido": {
+        "id": 1
+    },
+    "formaPagamento": "PIX"
+}
+
+###
+
+GET http://localhost:8080/itens-pedido
+
+###
+
+DELETE http://localhost:8080/itens-pedido/1
+
+###
+
+POST http://localhost:8080/itens-pedido
+Content-Type: application/json
+
+{
+    "pedido": {
+        "id": 1
+    },
+    "produto": {
+        "id": 1
+    },
+    "quantidade": 2
+}
+
+###
+POST http://localhost:8080/pagamentos
+Content-Type: application/json
+
+{
+    "pedido": {
+        "id": 1
+    },
+    "formaPagamento": "PIX"
+}
+
+###
+
+GET http://localhost:8080/pagamentos
+
+###
+
+PATCH http://localhost:8080/pagamentos/1/status?status=APROVADO
+
+###
+
+GET http://localhost:8080/pedidos/1
+
+###
+
+GET http://localhost:8080/entregas
+
+###
+
+POST http://localhost:8080/entregas
+Content-Type: application/json
+
+{
+    "pedido": {
+        "id": 1
+    }
+}
+
+###
+
+PATCH http://localhost:8080/entregas/1/status?status=EM_PREPARACAO
+
+###
+
+PATCH http://localhost:8080/entregas/1/status?status=SAIU_PARA_ENTREGA
+
+###
+
+PATCH http://localhost:8080/entregas/1/status?status=ENTREGUE
+
+###
+
+PATCH http://localhost:8080/entregas/1/status?status=PENDENTE
+
+###
+
+###
+
+POST http://localhost:8080/clientes/2
+Content-Type: application/json
+
+{
+    "nome": "maria Joana da Silva",
+    "cpf": "10987654321",
+    "telefone": "5588888888888",
+    "email": "maria.silva@email.com",
+    "logradouro": "Rua das arvores",
+    "numero": "200",
+    "bairro": "Centro velho",
+    "cidade": "Santa Rita",
+    "estado": "SC",
+    "cep": "98000000"
+}
+
+###
+
+POST http://localhost:8080/itens-pedido
+Content-Type: application/json
+
+{
+    "pedido": {
+        "id": 2
+    },
+    "produto": {
+        "id": 1
+    },
+    "quantidade": 2
+}
+
+###
+
+POST http://localhost:8080/pedidos
+Content-Type: application/json
+
+{
+    "cliente": {
+        "id": 1
+    }
+}
+
+###
+
+POST http://localhost:8080/itens-pedido
+Content-Type: application/json
+
+{
+    "pedido": {
+        "id": 2
+    },
+    "produto": {
+        "id": 1
+    },
+    "quantidade": 7
+}
+
+###
+
+GET http://localhost:8080/pedidos/2
+
+###
+POST http://localhost:8080/pagamentos
+Content-Type: application/json
+
+{
+    "pedido": {
+        "id": 2
+    },
+    "formaPagamento": "PIX"
+}
+
+###
+
+PATCH http://localhost:8080/pagamentos/2/status?status=APROVADO
+
+###
+
+GET http://localhost:8080/pedidos/2
+
+###
+POST http://localhost:8080/entregas
+Content-Type: application/json
+
+{
+    "pedido": {
+        "id": 2
+    }
+}
+
+###
+
+PATCH http://localhost:8080/entregas/2/status?status=EM_PREPARACAO
+
+###
+
+PATCH http://localhost:8080/entregas/2/status?status=SAIU_PARA_ENTREGA
+
+###
+PATCH http://localhost:8080/entregas/2/status?status=ENTREGUE
+
+###
+GET http://localhost:8080/pedidos/2
+
+###
+
+PATCH http://localhost:8080/pedidos/2/status?status=CANCELADO
+
+###
+
+POST http://localhost:8080/pedidos
+Content-Type: application/json
+
+{
+    "cliente": {
+        "id": 1
+    }
+}
+
+###
+
+PATCH http://localhost:8080/pedidos/3/status?status=CANCELADO
+
+###
+
+PATCH http://localhost:8080/pedidos/3/status?status=CONFIRMADO
+
+###
+
+POST http://localhost:8080/pagamentos
+Content-Type: application/json
+
+{
+    "pedido": {
+        "id": 3
+    },
+    "formaPagamento": "PIX"
+}
+
+###
+
+PUT http://localhost:8080/produtos/1
+Content-Type: application/json
+
+{
+    "nome": "Churrasquinho de Carne",
+    "descricao": "Churrasquinho de carne bovina preparado na brasa",
+    "preco": 10.00,
+    "estoque": 20,
+    "ativo": true,
+    "categoria": {
+        "id": 1
+    }
+}
+
+###
+
+POST http://localhost:8080/produtos
+Content-Type: application/json
+
+{
+    "nome": "Churrasquinho de Frango",
+    "descricao": "Churrasquinho de frango preparado na brasa",
+    "preco": 9.00,
+    "estoque": 20,
+    "categoria": {
+        "id": 1
+    }
+}
+
+###
+
+POST http://localhost:8080/pedidos
+Content-Type: application/json
+
+{
+    "cliente": {
+        "id": 1
+    }
+}
+
+###
+
+POST http://localhost:8080/itens-pedido
+Content-Type: application/json
+
+{
+    "pedido": {
+        "id": 4
+    },
+    "produto": {
+        "id": 6
+    },
+    "quantidade": 5
+}
+
+###
+
+DELETE http://localhost:8080/itens-pedido/5
+
+###
+
+GET http://localhost:8080/produtos/6
+
+###
+
+POST http://localhost:8080/itens-pedido
+Content-Type: application/json
+
+{
+    "pedido": {
+        "id": 3
+    },
+    "produto": {
+        "id": 6
+    },
+    "quantidade": 5
+}
+
+###
+
+PUT http://localhost:8080/itens-pedido/6
+Content-Type: application/json
+
+{
+    "quantidade": 8
+}
+
+###
+
+POST http://localhost:8080/itens-pedido
+Content-Type: application/json
+
+{
+    "pedido": {
+        "id": 3
+    },
+    "produto": {
+        "id": 6
+    },
+    "quantidade": 13
+}
+
+###
+
+POST http://localhost:8080/itens-pedido
+Content-Type: application/json
+
+{
+    "pedido": {
+        "id": 2
+    },
+    "produto": {
+        "id": 6
+    },
+    "quantidade": 1
+}
+
+###
+
+PUT http://localhost:8080/itens-pedido/6
+Content-Type: application/json
+
+{
+    "quantidade": 3
+}
+
+###
+
+DELETE http://localhost:8080/itens-pedido/6
+
+###
+
+PUT http://localhost:8080/pedidos/1/status
+
+###
+
+PATCH http://localhost:8080/pedidos/2/status?status=CONFIRMADO
+
+###
+
+GET http://localhost:8080/pedidos/2
+
+###
+
+GET http://localhost:8080/pedidos
+
+###
+
+PATCH http://localhost:8080/pedidos/4/status?status=CONFIRMADO
+
+###
+
+PATCH http://localhost:8080/pedidos/4/status?status=EM_PREPARACAO
+
+###
+
+PATCH http://localhost:8080/pedidos/4/status?status=PRONTO
+
+###
+
+PATCH http://localhost:8080/pedidos/4/status?status=SAIU_PARA_ENTREGA
+
+###
+
+PATCH http://localhost:8080/pedidos/4/status?status=ENTREGUE
+
+###
+
+GET http://localhost:8080/pedidos/4
+
+###
+
+PATCH http://localhost:8080/pedidos/1/status?status=PRONTO
+
+###
+
+PATCH http://localhost:8080/pedidos/3/status?status=CONFIRMADO
+
+###
+
+POST http://localhost:8080/pedidos
+Content-Type: application/json
+
+{
+    "cliente": {
+        "id": 1
+    }
+}
+
+###
+
+GET http://localhost:8080/produtos/6
+
+###
+
+POST http://localhost:8080/itens-pedido
+Content-Type: application/json
+
+{
+    "pedido": {
+        "id": 5
+    },
+    "produto": {
+        "id": 6
+    },
+    "quantidade": 3
+}
+
+###
+
+PATCH http://localhost:8080/pedidos/5/status?status=CANCELADO
+
+###
+
+GET http://localhost:8080/produtos/6
+
+###
+
+GET http://localhost:8080/pedidos/5
+
+###
+
+DELETE http://localhost:8080/pedidos/5
+
+###
+
+POST http://localhost:8080/pedidos
+Content-Type: application/json
+
+{
+  "cliente": {
+    "id": 1
+  }
+}
+
+###
+
+DELETE http://localhost:8080/pedidos/6
+
+###
+
+POST http://localhost:8080/pedidos
+Content-Type: application/json
+
+{
+  "cliente": {
+    "id": 1
+  },
+  "status": "CONFIRMADO"
+}
+
+###
+
+POST http://localhost:8080/pedidos
+Content-Type: application/json
+
+{
+  "cliente": {
+    "id": 1
+  }
+}
+
+###
+
+GET http://localhost:8080/produtos/6
+
+###
+
+POST http://localhost:8080/itens-pedido
+Content-Type: application/json
+
+{
+  "pedido": {
+    "id": 9
+  },
+  "produto": {
+    "id": 6
+  },
+  "quantidade": 3
+}
+
+###
+
+DELETE http://localhost:8080/pedidos/9
+
+###
+
+GET http://localhost:8080/produtos/6
+
+###
+
+
+POST http://localhost:8080/produtos/6
+Content-Type: application/json
+
+{
+    "nome": "Churrasquinho de Frango",
+    "descricao": "Churrasquinho de frango preparado na brasa",
+    "preco": 9.00,
+    "estoque": 12,
+    "categoria": {
+        "id": 1
+    }
+}
+
+###
+
+DELETE http://localhost:8080/pedidos/8
+
+###
+
+GET http://localhost:8080/produtos/6
+
+###
+
+POST http://localhost:8080/pedidos
+Content-Type: application/json
+
+{
+  "cliente": {
+    "id": 1
+  }
+}
+
+###
+
+POST http://localhost:8080/itens-pedido
+Content-Type: application/json
+
+{
+  "pedido": {
+    "id": 10
+  },
+  "produto": {
+    "id": 6
+  }
+}
+
+###
+
+DELETE http://localhost:8080/pedidos/10
+
+###
+
+GET http://localhost:8080/produtos/6
+
+###
+
+PATCH http://localhost:8080/pedidos/11/status?status=CONFIRMADO
+
+###
+
+POST http://localhost:8080/itens-pedido
+Content-Type: application/json
+
+{
+  "pedido": {
+    "id": 11
+  },
+  "produto": {
+    "id": 6
+  },
+  "quantidade": 1
+}
+
+###
+
+PATCH http://localhost:8080/pedidos/11/status?status=CONFIRMADO
+
+###
+
+POST http://localhost:8080/pedidos
+Content-Type: application/json
+
+{
+  "cliente": {
+    "id": 1
+  }
+}
+
+###
+
+POST http://localhost:8080/itens-pedido
+Content-Type: application/json
+
+{
+  "pedido": {
+    "id": 14
+  },
+  "produto": {
+    "id": 6
+  },
+  "quantidade": 1
+}
+
+###
+
+POST http://localhost:8080/pagamentos
+Content-Type: application/json
+
+{
+  "pedido": {
+    "id": 12
+  },
+  "formaPagamento": "PIX"
+}
+
+###
+
+PATCH http://localhost:8080/pedidos/12/status?status=CONFIRMADO
+
+###
+
+PATCH http://localhost:8080/pedidos/12/status?status=EM_PREPARACAO
+
+###
+
+GET http://localhost:8080/pagamentos
+
+###
+
+PATCH http://localhost:8080/pagamentos/3/status?status=APROVADO
+
+###
+
+PATCH http://localhost:8080/pedidos/12/status?status=EM_PREPARACAO
+
+###
+
+PATCH http://localhost:8080/pedidos/12/status?status=PRONTO
+
+###
+
+PATCH http://localhost:8080/pedidos/12/status?status=SAIU_PARA_ENTREGA
+
+###
+
+PATCH http://localhost:8080/pedidos/12/status?status=ENTREGUE
+
+###
+
+PATCH http://localhost:8080/pedidos/12/status?status=PRONTO
+
+###
+
+PATCH http://localhost:8080/pedidos/5/status?status=CONFIRMADO
+
+###
+
+PATCH http://localhost:8080/pagamentos/3/status?status=PENDENTE
+
+###
+
+GET http://localhost:8080/pagamentos
+
+###
+
+POST http://localhost:8080/pedidos
+Content-Type: application/json
+
+{
+    "cliente": {
+        "id": 1
+    }
+}
+
+###
+
+PATCH http://localhost:8080/pedidos/13/status?status=CONFIRMADO
+
+###
+
+GET http://localhost:8080/pedidos/13
+
+###
+
+POST http://localhost:8080/itens-pedido
+Content-Type: application/json
+
+{
+  "pedido": {
+    "id": 13
+  },
+  "produto": {
+    "id": 6
+  },
+  "quantidade": 1
+}
+
+####
+
+PATCH http://localhost:8080/pedidos/13/status?status=CONFIRMADO
+
+###
+
+POST http://localhost:8080/pagamentos
+Content-Type: application/json
+
+{
+  "pedido": {
+    "id": 13
+  },
+  "formaPagamento": "PIX"
+}
+
+###
+
+PATCH http://localhost:8080/pedidos/3/status?status=CANCELADO
+
+
+###
+
+PATCH http://localhost:8080/pagamentos/3/status?status=APROVADO
+
+###
+
+PATCH http://localhost:8080/pagamentos/4/status?status=APROVADO
+
+###
+
+POST http://localhost:8080/itens-pedido
+Content-Type: application/json
+
+{
+  "pedido": {
+    "id": 15
+  },
+  "produto": {
+    "id": 6
+  },
+  "quantidade": 1
+}
+
+###
+
+PUT http://localhost:8080/itens-pedido/15
+Content-Type: application/json
+
+{
+  "quantidade": 2
+}
+
+###
+
+PUT http://localhost:8080/itens-pedido/15
+Content-Type: application/json
+
+{
+  "quantidade": 1
+}
+
+###
+
+GET http://localhost:8080/pedidos/15
+
+
+###
+
+GET http://localhost:8080/produtos/6
+
+###
+
+PATCH http://localhost:8080/pedidos/15/status?status=CONFIRMADO
+
+###
+
+PUT http://localhost:8080/itens-pedido/6
+Content-Type: application/json
+
+{
+  "quantidade": 2
+}
+
+###
+
+POST http://localhost:8080/pedidos
+Content-Type: application/json
+
+{
+  "cliente": {
+    "id": 1
+  }
+}
+
+###
+
+POST http://localhost:8080/itens-pedido
+Content-Type: application/json
+
+{
+  "pedido": {
+    "id": 16
+  },
+  "produto": {
+    "id": 6
+  },
+  "quantidade": 1
+}
+
+###
+
+DELETE http://localhost:8080/itens-pedido/6
+
+###
+
+GET http://localhost:8080/itens-pedido
+
+###
+
+GET http://localhost:8080/pedidos/16
+
+###
+
+GET http://localhost:8080/itens-pedido/15
+
+###
+
+POST http://localhost:8080/itens-pedido
+Content-Type: application/json
+
+{
+  "pedido": {
+    "id": 16
+  },
+  "produto": {
+    "id": 6
+  },
+  "quantidade": 1
+}
+
+###
+
+DELETE http://localhost:8080/itens-pedido/17
+
+###
+
+GET http://localhost:8080/pedidos/16
+
+###
+
+GET http://localhost:8080/produtos/6
+
+###
+
+GET http://localhost:8080/produtos/6
+
+###
+
+PUT http://localhost:8080/produtos/6
+Content-Type: application/json
+
+{
+  "nome": "Churrasquinho de Frango",
+  "descricao": "Churrasquinho de frango preparado na brasa",
+  "preco": 9.00,
+  "estoque": 5,
+  "ativo": true,
+  "categoria": {
+    "id": 1
+  }
+}
+
+###
+
+POST http://localhost:8080/itens-pedido
+Content-Type: application/json
+
+{
+  "pedido": {
+    "id": 16
+  },
+  "produto": {
+    "id": 6
+  },
+  "quantidade": 1
+}
+
+###
+
+DELETE http://localhost:8080/produtos/6
+
+###
+
+GET http://localhost:8080/produtos
+
+###
+
+GET http://localhost:8080/itens-pedido
+
+###
+
+DELETE http://localhost:8080/produtos/7
+
+###
+
+PUT http://localhost:8080/produtos/8
+Content-Type: application/json
+
+{
+  "nome": "Churrasquinho de Frango Especial",
+  "descricao": "Churrasquinho de frango preparado na brasa",
+  "preco": 10.00,
+  "estoque": 20,
+  "ativo": true,
+  "categoria": {
+    "id": 1
+  }
+}
+
+###
+
+PUT http://localhost:8080/produtos/6
+Content-Type: application/json
+
+{
+  "nome": "Churrasquinho de Frango",
+  "descricao": "Churrasquinho de frango preparado na brasa",
+  "preco": 12.00,
+  "estoque": 5,
+  "ativo": true,
+  "categoria": {
+    "id": 1
+  }
+}
+
+###
+
+GET http://localhost:8080/categorias
+
+###
+
+POST http://localhost:8080/categorias
+Content-Type: application/json
+
+{
+  "nome": "Bebidas",
+  "descricao": "Bebidas disponíveis para venda",
+  "ativo": true
+}
+
+###
+
+PUT http://localhost:8080/produtos/6
+Content-Type: application/json
+
+{
+  "nome": "Churrasquinho de Frango",
+  "descricao": "Churrasquinho de frango preparado na brasa",
+  "preco": 12.00,
+  "estoque": 5,
+  "ativo": true,
+  "categoria": {
+    "id": 2
+  }
+}
+
+####
+
+PUT http://localhost:8080/produtos/6
+Content-Type: application/json
+
+{
+  "nome": "Churrasquinho de Frango",
+  "descricao": "Churrasquinho de frango preparado na brasa",
+  "preco": 12.00,
+  "estoque": 5,
+  "ativo": true,
+  "categoria": {
+    "id": 1
+  }
+}
+
+###
+
+PUT http://localhost:8080/produtos/6
+Content-Type: application/json
+
+{
+  "nome": "Churrasquinho de Frango",
+  "descricao": "Churrasquinho de frango preparado na brasa",
+  "preco": 12.00,
+  "estoque": 5,
+  "ativo": true,
+  "categoria": {
+    "id": 2
+  }
+}
+
+###
+
+PUT http://localhost:8080/produtos/8
+Content-Type: application/json
+
+{
+  "nome": "Churrasquinho de Frango Especial",
+  "descricao": "Churrasquinho de frango preparado na brasa",
+  "preco": 10.00,
+  "estoque": 20,
+  "ativo": true,
+  "categoria": {
+    "id": 1
+  }
+}
+
+###
+
+GET http://localhost:8080/pedidos
+
+###
+
+POST http://localhost:8080/itens-pedido
+Content-Type: application/json
+
+{
+  "pedido": {
+    "id": 16
+  },
+  "produto": {
+    "id": 8
+  },
+  "quantidade": 1
+}
+
+###
+
+POST http://localhost:8080/itens-pedido
+Content-Type: application/json
+
+{
+  "pedido": {
+    "id": 16
+  },
+  "produto": {
+    "id": 8
+  },
+  "quantidade": 1
+}
+
+###
+
+DELETE http://localhost:8080/itens-pedido/18
+
+###
+
+GET http://localhost:8080/pedidos/16
+
+###
+
+GET http://localhost:8080/produtos/8
+
+###
+
+POST http://localhost:8080/pagamentos
+Content-Type: application/json
+
+{
+  "pedido": {
+    "id": 12
+  },
+  "formaPagamento": "PIX"
+}
+
+###
+
+GET http://localhost:8080/pagamentos
+
+###
+
+PATCH http://localhost:8080/pagamentos/4/status?status=APROVADO
+
+###
+
+POST http://localhost:8080/produtos
+Content-Type: application/json
+
+{
+  "nome": "Produto Teste",
+  "descricao": "Produto para teste de categoria obrigatória",
+  "preco": 10.00,
+  "estoque": 10,
+  "ativo": true
+}
+
+###
+
+POST http://localhost:8080/produtos
+Content-Type: application/json
+
+{
+  "nome": "Produto Teste",
+  "descricao": "Produto para teste de categoria inexistente",
+  "preco": 10.00,
+  "estoque": 10,
+  "ativo": true,
+  "categoria": {
+    "id": 999
+  }
+}
+
+###
+
+GET http://localhost:8080/produtos/999
+
+###
+
+GET http://localhost:8080/produtos/8
+
+###
+
+GET http://localhost:8080/produtos
+
+###
+
+GET http://localhost:8080/categorias/1
+
+###
+
+GET http://localhost:8080/categorias
+
+###
+
+POST http://localhost:8080/categorias
+Content-Type: application/json
+
+{
+  "nome": "Sobremesas",
+  "descricao": "Sobremesas disponíveis para venda"
+}
+
+###
+
+PUT http://localhost:8080/categorias/3
+Content-Type: application/json
+
+{
+  "nome": "Sobremesas Atualizadas",
+  "descricao": "Sobremesas disponíveis para venda",
+  "ativo": true
+}
+
+###
+
+DELETE http://localhost:8080/categorias/3
+
+###
+
+DELETE http://localhost:8080/categorias/1
+
+###
+
+DELETE http://localhost:8080/categorias/1
+
+###
+
+DELETE http://localhost:8080/categorias/999
+
+###
+
+POST http://localhost:8080/categorias
+Content-Type: application/json
+
+{
+  "descricao": "Categoria sem nome",
+  "ativo": true
+}
+
+###
+
+POST http://localhost:8080/categorias
+Content-Type: application/json
+
+{
+  "descricao": "Categoria sem nome",
+  "ativo": true
+}
+
+###
+
+POST http://localhost:8080/categorias
+Content-Type: application/json
+
+{
+  "nome": "Churrasquinhos",
+  "descricao": "Categoria duplicada",
+  "ativo": true
+}
+
+###
+
+POST http://localhost:8080/categorias
+Content-Type: application/json
+
+{
+  "nome": "Churrasquinhos",
+  "descricao": "Categoria duplicada",
+  "ativo": true
+}
+
+###
+
+POST http://localhost:8080/categorias
+Content-Type: application/json
+
+{
+  "nome": "   ",
+  "descricao": "Nome somente com espaços",
+  "ativo": true
+}
+
+###
+
+PUT http://localhost:8080/categorias/1
+Content-Type: application/json
+
+{
+  "nome": "Churrasquinhos Atualizado",
+  "descricao": "Nova descrição",
+  "ativo": true
+}
+
+###
+
+PUT http://localhost:8080/categorias/1
+Content-Type: application/json
+
+{
+  "nome": "Churrasquinhos",
+  "descricao": "Churrasquinhos atualizados",
+  "ativo": true
+}
+
+####
+
+PUT http://localhost:8080/categorias/1
+Content-Type: application/json
+
+{
+  "nome": "Bebidas",
+  "descricao": "Tentativa de nome duplicado",
+  "ativo": true
+}
+
+###
+
+PUT http://localhost:8080/categorias/999
+Content-Type: application/json
+
+{
+  "nome": "Categoria inexistente",
+  "descricao": "Teste",
+  "ativo": true
+}
+
+###
+
+PUT http://localhost:8080/categorias/1
+Content-Type: application/json
+
+{
+  "descricao": "Atualização sem nome",
+  "ativo": true
+}
+
+###
+
+PUT http://localhost:8080/categorias/1
+Content-Type: application/json
+
+{
+  "nome": "   ",
+  "descricao": "Atualização com nome em branco",
+  "ativo": true
+}
+
+###
+
+PUT http://localhost:8080/categorias/1
+Content-Type: application/json
+
+{
+  "nome": "Churrasquinhos",
+  "descricao": "Descrição alterada novamente",
+  "ativo": true
+}
+
+###
+
+POST http://localhost:8080/categorias
+Content-Type: application/json
+
+{
+    "nome": "Teste Ativo Automático",
+    "descricao": "Teste do valor padrão"
+}
+
+###
+
+DELETE http://localhost:8080/categorias/5
+
+###
+
+PUT http://localhost:8080/categorias/1
+Content-Type: application/json
+
+{
+    "nome": "Churrasquinhos",
+    "descricao": "Teste ativo nulo",
+    "ativo": null
+}
+
+###
+
+PUT http://localhost:8080/categorias/2
+Content-Type: application/json
+
+{
+    "nome": "Bebidas",
+    "descricao": "Bebidas disponíveis para venda",
+    "ativo": false
+}
+
+###
+
+PUT http://localhost:8080/categorias/2
+Content-Type: application/json
+
+{
+    "nome": "Bebidas",
+    "descricao": "Bebidas disponíveis para venda",
+    "ativo": true
+}
+
+###
+

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo - Churrasquinho System</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .cabecalho {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .cabecalho h2 {
+            margin: 0;
+        }
+
+        .busca {
+            padding: 10px 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+            min-width: 260px;
+        }
+
+        .grid-produtos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
+        .card-produto {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            transition: 0.2s;
+        }
+
+        .card-produto:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .produto-imagem {
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #8b0000, #650000);
+        }
+
+        .produto-info {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .produto-info h3 {
+            margin: 0;
+            font-size: 1.05rem;
+        }
+
+        .produto-info .categoria {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .produto-info .descricao {
+            font-size: 13px;
+            color: #666;
+            min-height: 36px;
+            max-height: 38px;
+            line-height: 1.4;
+            overflow: hidden;
+        }
+
+        .produto-info .preco {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #8b0000;
+            margin-top: 4px;
+        }
+
+        /* ─── Ações: controle de quantidade + botão ─── */
+        .card-acoes {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+        }
+
+        .controle-quantidade {
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .controle-quantidade button {
+            width: 32px;
+            height: 38px;
+            border: none;
+            background-color: #f0f0f0;
+            color: #333;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.15s;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .controle-quantidade button:hover:not(:disabled) {
+            background-color: #8b0000;
+            color: white;
+        }
+
+        .controle-quantidade button:disabled {
+            background-color: #f0f0f0;
+            color: #bbb;
+            cursor: not-allowed;
+        }
+
+        .controle-quantidade .valor {
+            min-width: 36px;
+            text-align: center;
+            font-weight: bold;
+            background-color: white;
+            border-left: 1px solid #ccc;
+            border-right: 1px solid #ccc;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .btn-comprar {
+            flex-grow: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #8b0000;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-comprar:hover {
+            background-color: #650000;
+        }
+
+        .btn-comprar:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .aviso {
+            padding: 12px 16px;
+            border-radius: 5px;
+            margin-bottom: 16px;
+            border-left: 4px solid transparent;
+            font-size: 14px;
+        }
+
+        .aviso.erro {
+            background-color: #ffebee;
+            color: #b71c1c;
+            border-left-color: #b71c1c;
+        }
+
+        .aviso.sucesso {
+            background-color: #e8f5e9;
+            color: #1b5e20;
+            border-left-color: #2e7d32;
+        }
+
+        .vazio {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        @media (max-width: 600px) {
+            .busca {
+                width: 100%;
+            }
+        }
+
+        .aviso.aviso-info {
+            background-color: #fff8e1;
+            color: #7a5b00;
+            border-left-color: #fbc02d;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div th:replace="~{fragments/header :: header('Catálogo de produtos')}"></div>
+
+    <main>
+
+        <div class="cabecalho">
+            <h2>Produtos disponíveis</h2>
+            <input type="text" class="busca" id="busca" placeholder="🔍 Buscar por nome ou categoria...">
+        </div>
+
+        <div class="aviso sucesso" th:if="${sucesso}" th:text="${sucesso}"></div>
+        <div class="aviso erro" th:if="${erro}" th:text="${erro}"></div>
+        <div class="aviso aviso-info" th:if="${aviso}" th:text="${aviso}"></div>
+
+
+        <div class="grid-produtos" id="gridProdutos" th:if="${produtos != null and !produtos.isEmpty()}">
+
+            <div class="card-produto" th:each="p : ${produtos}"
+                th:attr="data-nome=${p.nome != null ? #strings.toLowerCase(p.nome) : ''},
+                      data-categoria=${p.categoria != null and p.categoria.nome != null ? #strings.toLowerCase(p.categoria.nome) : ''}">
+
+                <div class="produto-imagem">🔥</div>
+
+                <div class="produto-info">
+                    <span class="categoria" th:text="${p.categoria != null ? p.categoria.nome : 'Sem categoria'}">
+                        Categoria
+                    </span>
+
+                    <h3 th:text="${p.nome}">Nome</h3>
+
+                    <p class="descricao"
+                        th:text="${p.descricao != null and !p.descricao.isBlank() ? p.descricao : 'Sem descrição.'}">
+                        Descrição
+                    </p>
+
+                    <span class="preco" th:text="'R$ ' + ${#numbers.formatDecimal(p.preco, 1, 2)}">
+                        R$ 0,00
+                    </span>
+
+                    <!-- Ações: controle − N + e botão Adicionar -->
+                    <form th:action="@{'/carrinho/adicionar/' + ${p.id}}" method="post" class="card-acoes"
+                        th:if="${session.usuarioTipo == null or session.usuarioTipo.name() == 'CLIENTE'}"
+                        th:attr="data-estoque=${p.estoque}">
+
+                        <input type="hidden" name="quantidade" value="1" class="input-quantidade">
+
+                        <div class="controle-quantidade">
+
+                            <button type="button" class="btn-menos" th:disabled="${p.estoque == null or p.estoque <= 0}"
+                                title="Diminuir">
+                                −
+                            </button>
+
+                            <div class="valor">1</div>
+
+                            <button type="button" class="btn-mais" th:disabled="${p.estoque == null or p.estoque <= 0}"
+                                title="Aumentar">
+                                +
+                            </button>
+
+                        </div>
+
+                        <button type="submit" class="btn-comprar" th:disabled="${p.estoque == null or p.estoque <= 0}">
+                            🛒 Adicionar
+                        </button>
+
+                    </form>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="vazio" th:if="${produtos == null or produtos.isEmpty()}">
+            <h3>Nenhum produto disponível no momento</h3>
+            <p>Volte mais tarde!</p>
+        </div>
+
+    </main>
+
+    <script>
+        /* ============================================================
+           1. Busca por nome/categoria
+           ============================================================ */
+        const busca = document.getElementById('busca');
+        if (busca) {
+            busca.addEventListener('input', () => {
+                const termo = busca.value.toLowerCase().trim();
+                document.querySelectorAll('.card-produto').forEach(card => {
+                    const nome = card.dataset.nome || '';
+                    const categoria = card.dataset.categoria || '';
+                    const combina = !termo || nome.includes(termo) || categoria.includes(termo);
+                    card.style.display = combina ? '' : 'none';
+                });
+            });
+        }
+
+        /* ============================================================
+           2. Controle − N + em cada card
+           ============================================================ */
+        document.querySelectorAll('.card-acoes').forEach(form => {
+
+            const estoque = parseInt(form.dataset.estoque, 10) || 0;
+            const input = form.querySelector('.input-quantidade');
+            const display = form.querySelector('.controle-quantidade .valor');
+            const btnMais = form.querySelector('.btn-mais');
+            const btnMenos = form.querySelector('.btn-menos');
+
+            let qtd = 1;
+
+            function atualizar() {
+                input.value = qtd;
+                display.textContent = qtd;
+
+                btnMenos.disabled = qtd <= 1 || estoque <= 0;
+                btnMais.disabled = qtd >= estoque;
+            }
+
+            btnMais.addEventListener('click', () => {
+                if (qtd < estoque) {
+                    qtd++;
+                    atualizar();
+                }
+            });
+
+            btnMenos.addEventListener('click', () => {
+                if (qtd > 1) {
+                    qtd--;
+                    atualizar();
+                }
+            });
+
+            atualizar();
+        });
+    </script>
+
+</body>
+
+</html>

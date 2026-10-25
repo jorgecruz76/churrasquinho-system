@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impressão de Pedidos</title>
+
+    <style>
+        /* ─── Reset ─── */
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #f0f0f0;
+            color: #000;
+            font-size: 11px;
+        }
+
+        /* ─── Barra de ações (só tela) ─── */
+        .barra-acoes {
+            background-color: #8b0000;
+            color: white;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .barra-acoes h1 {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .barra-acoes .info {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
+
+        .barra-acoes button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            background-color: white;
+            color: #8b0000;
+            transition: 0.2s;
+        }
+
+        .barra-acoes button:hover {
+            background-color: #ffe5e5;
+        }
+
+        .barra-acoes .fechar {
+            background-color: transparent;
+            color: white;
+            border: 1px solid white;
+        }
+
+        .barra-acoes .fechar:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* ─── Container de impressão (A4) ─── */
+        .impressao {
+            background-color: white;
+            max-width: 210mm;
+            margin: 20px auto;
+            padding: 12mm 12mm;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        /* ─── Cabeçalho geral ─── */
+        .cabecalho-geral {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+
+        .cabecalho-geral h1 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .cabecalho-geral .subtitulo {
+            font-size: 11px;
+            margin-top: 3px;
+            color: #333;
+        }
+
+        .cabecalho-geral .meta {
+            font-size: 9px;
+            margin-top: 4px;
+            color: #666;
+        }
+
+        /* ─── Cada pedido (bloco compacto) ─── */
+        .pedido {
+            border: 1px solid #999;
+            border-radius: 4px;
+            padding: 8px 10px;
+            margin-bottom: 8px;
+            page-break-inside: avoid;   /* não corta no meio */
+        }
+
+        .pedido:last-child {
+            margin-bottom: 0;
+        }
+
+        /* ─── Cabeçalho do pedido ─── */
+        .pedido-cabecalho {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 4px;
+            margin-bottom: 6px;
+        }
+
+        .pedido-cabecalho .esquerda {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .pedido-cabecalho .id {
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .pedido-cabecalho .status {
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 7px;
+            border: 1px solid #000;
+            border-radius: 3px;
+            background-color: #f5f5f5;
+            text-transform: uppercase;
+        }
+
+        .pedido-cabecalho .data {
+            font-size: 10px;
+            color: #666;
+        }
+
+        .pedido-cabecalho .valor {
+            font-size: 14px;
+            font-weight: bold;
+            color: #8b0000;
+        }
+
+        /* ─── Corpo do pedido ─── */
+        .pedido-corpo {
+            display: grid;
+            grid-template-columns: 1fr 1.4fr;
+            gap: 12px;
+            align-items: start;
+        }
+
+        .pedido-bloco {
+            font-size: 10px;
+            line-height: 1.4;
+        }
+
+        .pedido-bloco .titulo {
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #666;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+
+        .pedido-bloco .linha {
+            margin: 1px 0;
+        }
+
+        /* ─── Tabela de itens ─── */
+        .itens-tabela {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2px;
+        }
+
+        .itens-tabela th,
+        .itens-tabela td {
+            padding: 3px 5px;
+            font-size: 10px;
+            text-align: left;
+            border-bottom: 1px dotted #ccc;
+        }
+
+        .itens-tabela th {
+            border-bottom: 1px solid #999;
+            font-weight: bold;
+            font-size: 9px;
+            text-transform: uppercase;
+            color: #555;
+        }
+
+        .itens-tabela td.center { text-align: center; }
+        .itens-tabela td.right  { text-align: right; white-space: nowrap; }
+
+        .itens-tabela .nome-item {
+            max-width: 130px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* ─── Rodapé geral ─── */
+        .rodape-geral {
+            margin-top: 12px;
+            padding-top: 8px;
+            border-top: 2px solid #000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .rodape-geral .total-geral {
+            color: #8b0000;
+            font-size: 14px;
+        }
+
+        /* ─── Sem pedidos ─── */
+        .vazio {
+            text-align: center;
+            padding: 40px 20px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* ─── Modo CUPOM (1 pedido só) ─── */
+        .modo-cupom .pedido {
+            border: 2px solid #000;
+            padding: 16px 20px;
+            margin-bottom: 0;
+        }
+
+        .modo-cupom .pedido-cabecalho {
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+
+        .modo-cupom .pedido-cabecalho .id {
+            font-size: 18px;
+        }
+
+        .modo-cupom .pedido-cabecalho .status {
+            font-size: 11px;
+            padding: 4px 10px;
+        }
+
+        .modo-cupom .pedido-cabecalho .data {
+            font-size: 11px;
+        }
+
+        .modo-cupom .pedido-cabecalho .valor {
+            font-size: 20px;
+        }
+
+        .modo-cupom .pedido-corpo {
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+
+        .modo-cupom .pedido-bloco {
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .modo-cupom .pedido-bloco .titulo {
+            font-size: 10px;
+            margin-bottom: 4px;
+        }
+
+        .modo-cupom .itens-tabela th,
+        .modo-cupom .itens-tabela td {
+            padding: 6px 8px;
+            font-size: 12px;
+        }
+
+        .modo-cupom .itens-tabela th {
+            font-size: 10px;
+        }
+
+        .modo-cupom .itens-tabela .nome-item {
+            max-width: none;
+        }
+
+        /* ─── Media print ─── */
+        @media print {
+            body {
+                background-color: white;
+                font-size: 10px;
+            }
+
+            .barra-acoes {
+                display: none;
+            }
+
+            .impressao {
+                max-width: none;
+                margin: 0;
+                padding: 8mm;
+                box-shadow: none;
+            }
+
+            .pedido {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+
+            .rodape-geral {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Barra de ações (só na tela, não aparece na impressão) -->
+<div class="barra-acoes">
+    <div>
+        <h1>🖨 Impressão de Pedidos</h1>
+        <div class="info" id="infoFiltro">Carregando...</div>
+    </div>
+    <div>
+        <button onclick="window.print()">🖨 Imprimir</button>
+        <button class="fechar" onclick="window.close()">Fechar</button>
+    </div>
+</div>
+
+<!-- Área de impressão -->
+<div class="impressao" id="areaImpressao">
+    <!-- Conteúdo preenchido via JS -->
+</div>
+
+<script>
+    /* ============================================================
+       PARÂMETROS DA URL
+       ============================================================ */
+    const params = new URLSearchParams(window.location.search);
+    const statusFiltro = params.get('status') || '';
+    const clienteFiltro = params.get('cliente') || '';
+    const pedidoId = params.get('id') || '';
+
+    /* ============================================================
+       CARREGAR PEDIDOS
+       ============================================================ */
+    async function carregar() {
+        const area = document.getElementById('areaImpressao');
+        const info = document.getElementById('infoFiltro');
+
+        try {
+            let pedidos = [];
+
+            if (pedidoId) {
+                // Modo: pedido único
+                const resp = await fetch('/pedidos/' + pedidoId);
+                if (resp.ok) {
+                    const p = await resp.json();
+                    pedidos = [p];
+                }
+                info.textContent = 'Pedido #' + pedidoId;
+            } else {
+                // Modo: lista filtrada
+                const resp = await fetch('/pedidos');
+                if (!resp.ok) throw new Error('Erro ao carregar pedidos.');
+                pedidos = await resp.json();
+
+                // Filtro de status
+                if (statusFiltro) {
+                    pedidos = pedidos.filter(p => p.status === statusFiltro);
+                }
+
+                // Filtro de cliente
+                if (clienteFiltro) {
+                    const termo = clienteFiltro.toLowerCase();
+                    pedidos = pedidos.filter(p => {
+                        const nome = (p.cliente?.nome || '').toLowerCase();
+                        const id = String(p.id);
+                        return nome.includes(termo) || id.includes(termo);
+                    });
+                }
+
+                const partes = [];
+                if (statusFiltro) partes.push('Status: ' + traduzirStatus(statusFiltro));
+                if (clienteFiltro) partes.push('Cliente: ' + clienteFiltro);
+                info.textContent = partes.length
+                    ? 'Filtros — ' + partes.join(' | ') + ' · ' + pedidos.length + ' pedido(s)'
+                    : 'Todos os pedidos · ' + pedidos.length + ' pedido(s)';
+            }
+
+            // Ordena por ID decrescente
+            pedidos.sort((a, b) => b.id - a.id);
+
+            // Decide o modo: 1 pedido = cupom, vários = lista compacta
+            const modo = pedidos.length === 1 ? 'cupom' : 'lista';
+
+            renderizar(pedidos, area, modo);
+
+        } catch (e) {
+            area.innerHTML = `<div class="vazio">Erro: ${e.message}</div>`;
+            info.textContent = 'Erro';
+        }
+    }
+
+    /* ============================================================
+       RENDERIZAR
+       ============================================================ */
+    function renderizar(pedidos, area, modo) {
+        area.innerHTML = '';
+        area.classList.remove('modo-cupom');
+
+        if (!pedidos.length) {
+            area.innerHTML = '<div class="vazio">Nenhum pedido para imprimir.</div>';
+            return;
+        }
+
+        // Modo cupom
+        if (modo === 'cupom') {
+            area.classList.add('modo-cupom');
+        }
+
+        // Cabeçalho geral (só no modo lista com múltiplos pedidos)
+        if (modo === 'lista') {
+            const cabecalho = document.createElement('div');
+            cabecalho.className = 'cabecalho-geral';
+
+            const dataAtual = new Date().toLocaleString('pt-BR');
+            const filtros = [];
+            if (statusFiltro) filtros.push('Status: ' + traduzirStatus(statusFiltro));
+            if (clienteFiltro) filtros.push('Cliente: ' + clienteFiltro);
+
+            cabecalho.innerHTML = `
+                <h1>CHURRASQUINHO SYSTEM</h1>
+                <div class="subtitulo">Lista de Pedidos — ${pedidos.length} pedido(s)</div>
+                <div class="meta">
+                    ${filtros.length ? filtros.join(' · ') + ' · ' : ''}
+                    Impresso em: ${dataAtual}
+                </div>
+            `;
+            area.appendChild(cabecalho);
+        }
+
+        // Renderiza cada pedido
+        let totalGeral = 0;
+        pedidos.forEach(p => {
+            totalGeral += Number(p.valorTotal || 0);
+            area.appendChild(criarBlocoPedido(p, modo));
+        });
+
+        // Rodapé geral (só no modo lista)
+        if (modo === 'lista') {
+            const rodape = document.createElement('div');
+            rodape.className = 'rodape-geral';
+
+            const totalFormatado = totalGeral.toFixed(2).replace('.', ',');
+
+            rodape.innerHTML = `
+                <span>TOTAL GERAL (${pedidos.length} pedido${pedidos.length > 1 ? 's' : ''}):</span>
+                <span class="total-geral">R$ ${totalFormatado}</span>
+            `;
+            area.appendChild(rodape);
+        }
+    }
+
+    function criarBlocoPedido(pedido, modo) {
+        const bloco = document.createElement('div');
+        bloco.className = 'pedido';
+
+        const cliente = pedido.cliente || {};
+        const tipoEntrega = pedido.tipoEntrega || 'ENTREGA';
+        const isRetirada = tipoEntrega === 'RETIRADA';
+
+        // Tradução do status
+        const statusLabel = traduzirStatus(pedido.status, tipoEntrega);
+
+        // Data formatada
+        const dataPedido = formatarData(pedido.dataCriacao || pedido.dataPedido);
+
+        // Total
+        const total = Number(pedido.valorTotal || 0).toFixed(2).replace('.', ',');
+
+        // Itens
+        const itens = pedido.itens || [];
+        const itensHtml = itens.map(item => {
+            const nome = item.produto?.nome || 'Produto';
+            const qtd = item.quantidade || 0;
+            const preco = Number(item.precoUnitario || 0).toFixed(2).replace('.', ',');
+            const subtotal = Number(item.subtotal || 0).toFixed(2).replace('.', ',');
+
+            return `
+                <tr>
+                    <td class="nome-item">${nome}</td>
+                    <td class="center">${qtd}</td>
+                    <td class="right">R$ ${preco}</td>
+                    <td class="right">R$ ${subtotal}</td>
+                </tr>
+            `;
+        }).join('');
+
+        // Endereço (só se entrega)
+        let enderecoHtml = '';
+        if (isRetirada) {
+            enderecoHtml = `
+                <div class="pedido-bloco">
+                    <div class="titulo">🏪 Retirada</div>
+                    <div class="linha">Retirada na loja</div>
+                </div>
+            `;
+        } else {
+            const enderecoLinhas = [];
+            if (cliente.logradouro) {
+                enderecoLinhas.push(
+                    cliente.logradouro + (cliente.numero ? ', ' + cliente.numero : '')
+                );
+            }
+            if (cliente.bairro) enderecoLinhas.push(cliente.bairro);
+            if (cliente.cidade) {
+                enderecoLinhas.push(
+                    cliente.cidade + (cliente.estado ? '/' + cliente.estado : '')
+                );
+            }
+            if (cliente.cep) enderecoLinhas.push('CEP ' + cliente.cep);
+
+            const enderecoTexto = enderecoLinhas.length
+                ? enderecoLinhas.join('<br>')
+                : '<em>Endereço não cadastrado</em>';
+
+            enderecoHtml = `
+                <div class="pedido-bloco">
+                    <div class="titulo">📍 Endereço de entrega</div>
+                    <div class="linha">${enderecoTexto}</div>
+                </div>
+            `;
+        }
+
+        bloco.innerHTML = `
+            <div class="pedido-cabecalho">
+                <div class="esquerda">
+                    <span class="id">#${pedido.id}</span>
+                    <span class="status">${statusLabel}</span>
+                    <span class="data">${dataPedido}</span>
+                </div>
+                <div class="valor">R$ ${total}</div>
+            </div>
+
+            <div class="pedido-corpo">
+                <div>
+                    <div class="pedido-bloco">
+                        <div class="titulo">👤 Cliente</div>
+                        <div class="linha"><strong>${cliente.nome || 'Cliente não identificado'}</strong></div>
+                    </div>
+                    ${enderecoHtml}
+                </div>
+
+                <div>
+                    <div class="pedido-bloco">
+                        <div class="titulo">📦 Itens</div>
+                        <table class="itens-tabela">
+                            <thead>
+                                <tr>
+                                    <th>Produto</th>
+                                    <th class="center">Qtd</th>
+                                    <th class="right">Preço</th>
+                                    <th class="right">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${itensHtml || '<tr><td colspan="4" class="center"><em>Sem itens</em></td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        return bloco;
+    }
+
+    /* ============================================================
+       HELPERS
+       ============================================================ */
+    function traduzirStatus(status, tipoEntrega) {
+        const isRetirada = tipoEntrega === 'RETIRADA';
+        const mapa = {
+            PENDENTE: 'Aguardando Pagamento',
+            CONFIRMADO: 'Confirmado',
+            EM_PREPARACAO: 'Em Preparação',
+            PRONTO: 'Pronto',
+            SAIU_PARA_ENTREGA: isRetirada ? 'Aguardando Retirada' : 'Saiu para Entrega',
+            ENTREGUE: isRetirada ? 'Retirado' : 'Entregue',
+            CANCELADO: 'Cancelado'
+        };
+        return mapa[status] || status;
+    }
+
+    function formatarData(iso) {
+        if (!iso) return '-';
+        return new Date(iso).toLocaleString('pt-BR', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+    }
+
+    /* ============================================================
+       INIT
+       ============================================================ */
+    carregar();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Pedidos - Churrasquinho System</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        h2 { margin-top: 0; }
+
+        .aviso {
+            padding: 12px 16px;
+            border-radius: 5px;
+            margin-bottom: 16px;
+            border-left: 4px solid transparent;
+            font-size: 14px;
+        }
+
+        .aviso.erro {
+            background-color: #ffebee;
+            color: #b71c1c;
+            border-left-color: #b71c1c;
+        }
+
+        .aviso.sucesso {
+            background-color: #e8f5e9;
+            color: #1b5e20;
+            border-left-color: #2e7d32;
+        }
+
+        .lista-pedidos {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .card-pedido {
+            background-color: white;
+            border-radius: 8px;
+            padding: 18px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border-left: 6px solid #999;
+        }
+
+        .card-pedido[data-status="PENDENTE"]          { border-color: #fbc02d; }
+        .card-pedido[data-status="CONFIRMADO"]        { border-color: #1976d2; }
+        .card-pedido[data-status="EM_PREPARACAO"]     { border-color: #f57c00; }
+        .card-pedido[data-status="PRONTO"]            { border-color: #388e3c; }
+        .card-pedido[data-status="SAIU_PARA_ENTREGA"] { border-color: #7b1fa2; }
+        .card-pedido[data-status="ENTREGUE"]          { border-color: #2e7d32; }
+        .card-pedido[data-status="CANCELADO"]         { border-color: #c62828; opacity: .75; }
+
+        /* ─── Cabeçalho do card ─── */
+        .card-cabecalho {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .card-cabecalho .info h3 {
+            margin: 0 0 4px;
+            font-size: 1.05rem;
+        }
+
+        .card-cabecalho .info p {
+            margin: 2px 0;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .card-cabecalho .direita {
+            text-align: right;
+        }
+
+        .card-cabecalho .valor {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #8b0000;
+            margin-top: 6px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            color: white;
+        }
+
+        /* ─── Timeline ─── */
+        .timeline {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0;
+            margin: 16px 0 12px;
+            padding: 12px 0;
+            border-top: 1px dashed #eee;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .etapa {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            text-align: center;
+        }
+
+        .etapa::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #ddd;
+            z-index: 0;
+        }
+
+        .etapa:first-child::before {
+            left: 50%;
+        }
+
+        .etapa:last-child::before {
+            right: 50%;
+        }
+
+        .etapa .bolinha {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background-color: #ddd;
+            color: #999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: bold;
+            position: relative;
+            z-index: 1;
+            transition: 0.2s;
+        }
+
+        .etapa .rotulo {
+            font-size: 11px;
+            color: #999;
+            margin-top: 6px;
+            line-height: 1.2;
+            max-width: 80px;
+        }
+
+        .etapa.concluida .bolinha {
+            background-color: #2e7d32;
+            color: white;
+        }
+
+        .etapa.concluida::before {
+            background-color: #2e7d32;
+        }
+
+        .etapa.concluida .rotulo {
+            color: #2e7d32;
+            font-weight: bold;
+        }
+
+        .etapa.atual .bolinha {
+            background-color: #8b0000;
+            color: white;
+            transform: scale(1.15);
+            box-shadow: 0 0 0 4px rgba(139, 0, 0, 0.15);
+        }
+
+        .etapa.atual .rotulo {
+            color: #8b0000;
+            font-weight: bold;
+        }
+
+        /* ─── Lista de itens ─── */
+        .itens-pedido {
+            padding-top: 8px;
+            margin-top: 4px;
+        }
+
+        .item-linha {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            font-size: 13px;
+            color: #444;
+            gap: 12px;
+        }
+
+        .item-linha .nome {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .item-linha .qtd {
+            color: #888;
+            font-size: 12px;
+            margin-left: 6px;
+        }
+
+        .item-linha .subtotal {
+            font-weight: bold;
+            color: #8b0000;
+            white-space: nowrap;
+        }
+
+        /* ─── Ações do card ─── */
+        .card-acoes {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .btn-pagar {
+            display: inline-block;
+            padding: 8px 18px;
+            background-color: #2e7d32;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 13px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .btn-pagar:hover {
+            background-color: #1b5e20;
+        }
+
+        .status-pago {
+            display: inline-block;
+            padding: 6px 14px;
+            background-color: #e8f5e9;
+            color: #1b5e20;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .vazio {
+            background-color: white;
+            padding: 60px 20px;
+            border-radius: 8px;
+            text-align: center;
+            color: #666;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .botao {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #8b0000;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-top: 16px;
+            transition: 0.2s;
+        }
+
+        .botao:hover { background-color: #650000; }
+
+        @media (max-width: 600px) {
+            .etapa .rotulo {
+                font-size: 10px;
+                max-width: 60px;
+            }
+
+            .timeline {
+                padding: 8px 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div th:replace="~{fragments/header :: header('Meus pedidos')}"></div>
+
+<main>
+
+    <h2>📦 Meus pedidos</h2>
+
+    <div class="aviso sucesso" th:if="${sucesso}" th:text="${sucesso}"></div>
+    <div class="aviso erro" th:if="${erro}" th:text="${erro}"></div>
+
+    <div th:if="${pedidos == null or pedidos.isEmpty()}" class="vazio">
+        <h3>Você ainda não fez nenhum pedido</h3>
+        <p>Explore nosso catálogo e faça seu primeiro pedido!</p>
+        <a href="/catalogo" class="botao">Ir ao catálogo</a>
+    </div>
+
+    <div th:if="${pedidos != null and !pedidos.isEmpty()}" class="lista-pedidos">
+
+        <div th:each="p : ${pedidos}"
+             class="card-pedido"
+             th:attr="data-status=${p.status}">
+
+            <!-- Cabeçalho: ID, data, status, valor -->
+            <div class="card-cabecalho">
+
+                <div class="info">
+                    <h3 th:text="'Pedido #' + ${p.id}">Pedido #0</h3>
+                    <p th:text="'Data: ' + ${#temporals.format(p.dataCriacao, 'dd/MM/yyyy HH:mm')}">
+                        Data
+                    </p>
+                </div>
+
+                <div class="direita">
+                    <!-- Badge de status — texto amigável, sem underscores -->
+                    <span class="badge"
+                          th:style="'background:' +
+                                    ${p.status.name() == 'PENDENTE' ? '#fbc02d' :
+                                      p.status.name() == 'CONFIRMADO' ? '#1976d2' :
+                                      p.status.name() == 'EM_PREPARACAO' ? '#f57c00' :
+                                      p.status.name() == 'PRONTO' ? '#388e3c' :
+                                      p.status.name() == 'SAIU_PARA_ENTREGA' ? '#7b1fa2' :
+                                      p.status.name() == 'ENTREGUE' ? '#2e7d32' :
+                                      '#c62828'}"
+                          th:text="${p.status.name() == 'PENDENTE' ? 'Aguardando pagamento' :
+                                    p.status.name() == 'CONFIRMADO' ? 'Confirmado' :
+                                    p.status.name() == 'EM_PREPARACAO' ? 'Em preparação' :
+                                    p.status.name() == 'PRONTO' ? 'Pronto' :
+                                    (p.status.name() == 'SAIU_PARA_ENTREGA' and p.tipoEntrega != null and p.tipoEntrega.name() == 'RETIRADA') ? 'Aguardando retirada' :
+                                    p.status.name() == 'SAIU_PARA_ENTREGA' ? 'Saiu para entrega' :
+                                    (p.status.name() == 'ENTREGUE' and p.tipoEntrega != null and p.tipoEntrega.name() == 'RETIRADA') ? 'Retirado' :
+                                    p.status.name() == 'ENTREGUE' ? 'Entregue' :
+                                    p.status.name() == 'CANCELADO' ? 'Cancelado' :
+                                    p.status}">
+                        STATUS
+                    </span>
+
+                    <div class="valor"
+                         th:text="'R$ ' + ${#numbers.formatDecimal(p.valorTotal, 1, 2)}">
+                        R$ 0,00
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Timeline — só aparece se o pedido NÃO for ENTREGUE nem CANCELADO -->
+            <div class="timeline"
+                 th:if="${p.status.name() != 'ENTREGUE' and p.status.name() != 'CANCELADO'}">
+
+                <!-- 1. Aguardando pagamento -->
+                <div class="etapa"
+                     th:classappend="${p.status.name() == 'PENDENTE' ? 'atual' :
+                                      (p.status.name() != 'PENDENTE' ? 'concluida' : '')}">
+                    <div class="bolinha"
+                         th:text="${p.status.name() == 'PENDENTE' ? '●' : '✓'}">●</div>
+                    <div class="rotulo">Aguardando pagamento</div>
+                </div>
+
+                <!-- 2. Confirmado -->
+                <div class="etapa"
+                     th:classappend="${p.status.name() == 'PENDENTE' ? '' :
+                                      (p.status.name() == 'CONFIRMADO' ? 'atual' : 'concluida')}">
+                    <div class="bolinha"
+                         th:text="${p.status.name() == 'PENDENTE' ? '○' :
+                                  (p.status.name() == 'CONFIRMADO' ? '●' : '✓')}">○</div>
+                    <div class="rotulo">Confirmado</div>
+                </div>
+
+                <!-- 3. Em preparação -->
+                <div class="etapa"
+                     th:classappend="${p.status.name() == 'PENDENTE' or p.status.name() == 'CONFIRMADO' ? '' :
+                                      (p.status.name() == 'EM_PREPARACAO' ? 'atual' : 'concluida')}">
+                    <div class="bolinha"
+                         th:text="${p.status.name() == 'PENDENTE' or p.status.name() == 'CONFIRMADO' ? '○' :
+                                  (p.status.name() == 'EM_PREPARACAO' ? '●' : '✓')}">○</div>
+                    <div class="rotulo">Em preparação</div>
+                </div>
+
+                <!-- 4. Pronto -->
+                <div class="etapa"
+                     th:classappend="${p.status.name() == 'PENDENTE' or p.status.name() == 'CONFIRMADO' or p.status.name() == 'EM_PREPARACAO' ? '' :
+                                      (p.status.name() == 'PRONTO' ? 'atual' : 'concluida')}">
+                    <div class="bolinha"
+                         th:text="${p.status.name() == 'PENDENTE' or p.status.name() == 'CONFIRMADO' or p.status.name() == 'EM_PREPARACAO' ? '○' :
+                                  (p.status.name() == 'PRONTO' ? '●' : '✓')}">○</div>
+                    <div class="rotulo">Pronto</div>
+                </div>
+
+                <!-- 5. "Saiu para entrega" (ENTREGA) OU "Aguardando retirada" (RETIRADA) -->
+                <div class="etapa"
+                     th:classappend="${p.status.name() == 'SAIU_PARA_ENTREGA' ? 'atual' :
+                                      (p.status.name() == 'ENTREGUE' ? 'concluida' : '')}">
+                    <div class="bolinha"
+                         th:text="${p.status.name() == 'SAIU_PARA_ENTREGA' ? '●' :
+                                  (p.status.name() == 'ENTREGUE' ? '✓' : '○')}">○</div>
+                    <div class="rotulo"
+                         th:text="${p.tipoEntrega != null and p.tipoEntrega.name() == 'RETIRADA'
+                                   ? 'Aguardando retirada'
+                                   : 'Saiu para entrega'}">
+                        Saiu para entrega
+                    </div>
+                </div>
+
+                <!-- 6. "Entregue" (ENTREGA) OU "Retirado" (RETIRADA) -->
+                <div class="etapa"
+                     th:classappend="${p.status.name() == 'ENTREGUE' ? 'concluida' : ''}">
+                    <div class="bolinha"
+                         th:text="${p.status.name() == 'ENTREGUE' ? '✓' : '○'}">○</div>
+                    <div class="rotulo"
+                         th:text="${p.tipoEntrega != null and p.tipoEntrega.name() == 'RETIRADA'
+                                   ? 'Retirado'
+                                   : 'Entregue'}">
+                        Entregue
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Lista de itens do pedido -->
+            <div class="itens-pedido" th:if="${p.itens != null and !p.itens.isEmpty()}">
+
+                <div class="item-linha" th:each="item : ${p.itens}">
+                    <div>
+                        <span class="nome"
+                              th:text="${item.produto != null ? item.produto.nome : 'Produto'}">
+                            Produto
+                        </span>
+                        <span class="qtd"
+                              th:text="'(' + ${item.quantidade} + '×)'">
+                            (1×)
+                        </span>
+                    </div>
+
+                    <span class="subtotal"
+                          th:text="'R$ ' + ${#numbers.formatDecimal(item.subtotal, 1, 2)}">
+                        R$ 0,00
+                    </span>
+                </div>
+
+            </div>
+
+            <!-- Ações -->
+            <div class="card-acoes">
+
+                <a th:if="${p.status.name() == 'PENDENTE'}"
+                   th:href="@{'/pagamento/' + ${p.id}}"
+                   class="btn-pagar">
+                    💳 Pagar
+                </a>
+
+                <span th:if="${p.status.name() != 'PENDENTE'
+                              and p.status.name() != 'CANCELADO'}"
+                      class="status-pago">
+                    ✅ Pago
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+</body>
+
+</html>

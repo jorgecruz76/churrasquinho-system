@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Categorias - Churrasquinho System</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .topo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .topo h2 { margin: 0; }
+
+        .botao {
+            display: inline-block;
+            padding: 10px 16px;
+            background-color: #8b0000;
+            color: white;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .botao:hover { background-color: #650000; }
+
+        .botao-secundario {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+        .botao-secundario:hover { background-color: #cfcfcf; }
+
+        .botao-perigo { background-color: #c62828; }
+        .botao-perigo:hover { background-color: #8e0000; }
+
+        .formulario {
+            display: none;
+            background-color: white;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .formulario h3 { margin-top: 0; }
+
+        .campos {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .campo {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .campo label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .campo input,
+        .campo select {
+            padding: 9px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .campo-completo { grid-column: 1 / -1; }
+
+        .acoes-formulario {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .tabela-container {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #8b0000;
+            color: white;
+        }
+
+        td .botao {
+            margin-right: 5px;
+            font-size: 12px;
+            padding: 6px 10px;
+        }
+
+        .mensagem {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 5px;
+            display: none;
+            border-left: 4px solid transparent;
+        }
+
+        .mensagem.erro {
+            background-color: #ffebee;
+            color: #b71c1c;
+            border-left-color: #b71c1c;
+        }
+
+        .mensagem.sucesso {
+            background-color: #e8f5e9;
+            color: #1b5e20;
+            border-left-color: #2e7d32;
+        }
+
+        .mensagem.visivel { display: block; }
+
+        @media (max-width: 900px) {
+            .campos { grid-template-columns: 1fr; }
+            .campo-completo { grid-column: auto; }
+            main { padding: 0 16px; margin: 20px auto; }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ⬇️ HEADER UNIFICADO -->
+<div th:replace="~{fragments/header :: header('Gerenciamento de categorias')}"></div>
+
+<main>
+
+    <div class="topo">
+        <h2>Categorias</h2>
+        <button type="button" class="botao" onclick="mostrarFormulario()">
+            + Nova categoria
+        </button>
+    </div>
+
+    <div id="mensagem" class="mensagem"></div>
+
+    <div id="formularioCategoria" class="formulario">
+
+        <h3 id="tituloFormulario">Nova categoria</h3>
+
+        <form id="formCategoria">
+
+            <input type="hidden" id="categoriaId">
+
+            <div class="campos">
+
+                <div class="campo campo-completo">
+                    <label for="nome">Nome</label>
+                    <input type="text" id="nome" name="nome" required>
+                </div>
+
+                <div class="campo campo-completo">
+                    <label for="descricao">Descrição</label>
+                    <input type="text" id="descricao" name="descricao">
+                </div>
+
+                <div class="campo">
+                    <label for="ativo">Ativo</label>
+                    <select id="ativo" name="ativo">
+                        <option value="true">Sim</option>
+                        <option value="false">Não</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="acoes-formulario">
+                <button type="submit" class="botao">Salvar</button>
+                <button type="button" class="botao botao-secundario"
+                        onclick="ocultarFormulario()">
+                    Cancelar
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+    <div class="tabela-container">
+
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Descrição</th>
+                <th>Ativo</th>
+                <th>Ações</th>
+            </tr>
+            </thead>
+
+            <tbody id="tabelaCategorias">
+            <!-- Categorias serão carregadas aqui -->
+            </tbody>
+        </table>
+
+    </div>
+
+</main>
+
+<script>
+
+    function mostrarMensagem(texto, tipo) {
+        const mensagem = document.getElementById('mensagem');
+
+        mensagem.textContent = texto;
+        mensagem.className = 'mensagem visivel ' + tipo;
+
+        setTimeout(() => {
+            mensagem.classList.remove('visivel');
+        }, 4000);
+    }
+
+    async function carregarCategorias() {
+        try {
+            const resposta = await fetch('/categorias');
+
+            if (!resposta.ok) {
+                throw new Error('Erro ao carregar categorias.');
+            }
+
+            const categorias = await resposta.json();
+
+            const tabela = document.getElementById('tabelaCategorias');
+
+            tabela.innerHTML = '';
+
+            categorias.forEach(categoria => {
+                const linha = document.createElement('tr');
+
+                linha.innerHTML = `
+                    <td>${categoria.id}</td>
+                    <td>${categoria.nome}</td>
+                    <td>${categoria.descricao ?? ''}</td>
+                    <td>${categoria.ativo ? 'Sim' : 'Não'}</td>
+                    <td>
+                        <button
+                            type="button"
+                            class="botao botao-secundario"
+                            onclick="editarCategoria(${categoria.id})">
+                            Editar
+                        </button>
+
+                        <button
+                            type="button"
+                            class="botao botao-perigo"
+                            onclick="excluirCategoria(${categoria.id})">
+                            Excluir
+                        </button>
+                    </td>
+                `;
+
+                tabela.appendChild(linha);
+            });
+
+        } catch (erro) {
+            console.error(erro);
+
+            const tabela = document.getElementById('tabelaCategorias');
+
+            tabela.innerHTML = `
+                <tr>
+                    <td colspan="5">
+                        Erro ao carregar as categorias.
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    function mostrarFormulario() {
+        document.getElementById('tituloFormulario').textContent = 'Nova categoria';
+        document.getElementById('categoriaId').value = '';
+        document.getElementById('formCategoria').reset();
+        document.getElementById('ativo').value = 'true';
+
+        document.getElementById('formularioCategoria').style.display = 'block';
+    }
+
+    function ocultarFormulario() {
+        document.getElementById('formularioCategoria').style.display = 'none';
+        document.getElementById('formCategoria').reset();
+        document.getElementById('categoriaId').value = '';
+    }
+
+    async function editarCategoria(id) {
+        try {
+            const resposta = await fetch(`/categorias/${id}`);
+
+            if (!resposta.ok) {
+                throw new Error('Categoria não encontrada.');
+            }
+
+            const categoria = await resposta.json();
+
+            document.getElementById('tituloFormulario').textContent = 'Editar categoria';
+
+            document.getElementById('categoriaId').value = categoria.id;
+            document.getElementById('nome').value = categoria.nome;
+            document.getElementById('descricao').value = categoria.descricao ?? '';
+            document.getElementById('ativo').value = String(categoria.ativo);
+
+            document.getElementById('formularioCategoria').style.display = 'block';
+
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+
+        } catch (erro) {
+            console.error(erro);
+            mostrarMensagem(erro.message, 'erro');
+        }
+    }
+
+    async function excluirCategoria(id) {
+        const confirmar = confirm(
+            'Tem certeza que deseja excluir esta categoria?'
+        );
+
+        if (!confirmar) {
+            return;
+        }
+
+        try {
+            const resposta = await fetch(`/categorias/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (!resposta.ok) {
+                let mensagem = 'Não foi possível excluir a categoria.';
+
+                try {
+                    const dados = await resposta.json();
+
+                    if (dados.message) {
+                        mensagem = dados.message;
+                    }
+                } catch (erro) {
+                    // Mantém a mensagem padrão caso a resposta não seja JSON.
+                }
+
+                throw new Error(mensagem);
+            }
+
+            mostrarMensagem('Categoria excluída com sucesso.', 'sucesso');
+
+            carregarCategorias();
+
+        } catch (erro) {
+            console.error(erro);
+            mostrarMensagem(erro.message, 'erro');
+        }
+    }
+
+    document.getElementById('formCategoria').addEventListener('submit', async function (evento) {
+        evento.preventDefault();
+
+        const id = document.getElementById('categoriaId').value;
+
+        const categoria = {
+            nome: document.getElementById('nome').value,
+            descricao: document.getElementById('descricao').value,
+            ativo: document.getElementById('ativo').value === 'true'
+        };
+
+        try {
+            const url = id ? `/categorias/${id}` : '/categorias';
+            const metodo = id ? 'PUT' : 'POST';
+
+            const resposta = await fetch(url, {
+                method: metodo,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(categoria)
+            });
+
+            let dados = null;
+
+            try {
+                dados = await resposta.json();
+            } catch (e) {
+                // resposta sem corpo (ex.: 204)
+            }
+
+            if (!resposta.ok) {
+                throw new Error(
+                    (dados && dados.message) || 'Erro ao salvar categoria.'
+                );
+            }
+
+            mostrarMensagem(
+                id ? 'Categoria atualizada com sucesso.'
+                   : 'Categoria cadastrada com sucesso.',
+                'sucesso'
+            );
+
+            ocultarFormulario();
+            carregarCategorias();
+
+        } catch (erro) {
+            console.error(erro);
+            mostrarMensagem(erro.message, 'erro');
+        }
+    });
+
+    carregarCategorias();
+</script>
+
+</body>
+
+</html>

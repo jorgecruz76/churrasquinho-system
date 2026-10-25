@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- ============================================================
+     FRAGMENTO DE HEADER
+     Parâmetro: subtitulo (String)
+     Uso: <div th:replace="~{fragments/header :: header('Catálogo')}"></div>
+     ============================================================ -->
+
+<header th:fragment="header(subtitulo)"
+        style="background-color: #8b0000;
+               color: white;
+               padding: 16px 32px;
+               display: flex;
+               justify-content: space-between;
+               align-items: center;
+               flex-wrap: wrap;
+               gap: 12px;">
+
+    <!-- Bloco esquerdo: título + subtítulo -->
+    <div>
+        <h1 style="margin: 0; font-size: 1.3rem;">
+            Churrasquinho System
+        </h1>
+        <p style="margin: 4px 0 0; font-size: 0.9rem; opacity: 0.85;"
+           th:text="${subtitulo}">
+            Subtítulo
+        </p>
+    </div>
+
+    <!-- Bloco direito: ações -->
+    <div style="display: flex;
+                align-items: center;
+                gap: 10px;
+                flex-wrap: wrap;">
+
+        <!-- Saudação (só logado) -->
+        <span th:if="${session.usuarioId != null}"
+              style="font-size: 14px; margin-right: 4px;">
+            Olá,
+            <strong th:text="${session.usuarioNome}">Usuário</strong>!
+        </span>
+
+        <!-- Botão "Meus pedidos" (só CLIENTE logado) -->
+        <a th:if="${session.usuarioTipo != null
+                     and session.usuarioTipo.name() == 'CLIENTE'}"
+           href="/meus-pedidos"
+           style="display: inline-flex;
+                  align-items: center;
+                  gap: 6px;
+                  padding: 8px 14px;
+                  background-color: white;
+                  color: #8b0000;
+                  text-decoration: none;
+                  border-radius: 5px;
+                  font-weight: bold;
+                  font-size: 14px;">
+            📦 Meus pedidos
+        </a>
+
+        <!-- Botão Carrinho (só CLIENTE logado) -->
+        <a th:if="${session.usuarioTipo != null
+                     and session.usuarioTipo.name() == 'CLIENTE'}"
+           href="/carrinho"
+           style="display: inline-flex;
+                  align-items: center;
+                  gap: 6px;
+                  padding: 8px 14px;
+                  background-color: white;
+                  color: #8b0000;
+                  text-decoration: none;
+                  border-radius: 5px;
+                  font-weight: bold;
+                  font-size: 14px;">
+
+            🛒 Carrinho
+            <span th:if="${session.carrinho != null and !session.carrinho.isEmpty()}"
+                  th:text="${session.carrinho.size()}"
+                  style="background-color: #8b0000;
+                         color: white;
+                         border-radius: 50%;
+                         min-width: 20px;
+                         height: 20px;
+                         display: inline-flex;
+                         align-items: center;
+                         justify-content: center;
+                         font-size: 11px;
+                         padding: 0 5px;">
+                0
+            </span>
+        </a>
+
+        <!-- Botão Entrar (só deslogado) -->
+        <a th:if="${session.usuarioId == null}"
+           href="/login"
+           style="padding: 8px 16px;
+                  background-color: #ffe5e5;
+                  color: #8b0000;
+                  text-decoration: none;
+                  border-radius: 5px;
+                  font-weight: bold;
+                  font-size: 14px;">
+            Entrar
+        </a>
+
+        <!-- Botão Menu admin (só ADM) -->
+        <a th:if="${session.usuarioTipo != null
+                     and session.usuarioTipo.name() == 'ADM'}"
+           href="/admin"
+           style="padding: 8px 16px;
+                  background-color: #ffe5e5;
+                  color: #8b0000;
+                  text-decoration: none;
+                  border-radius: 5px;
+                  font-weight: bold;
+                  font-size: 14px;">
+            ← Menu admin
+        </a>
+
+        <!-- Botão Início (para não-ADM ou deslogado) -->
+        <a th:if="${session.usuarioTipo == null
+                     or session.usuarioTipo.name() != 'ADM'}"
+           href="/"
+           style="padding: 8px 16px;
+                  background-color: #ffe5e5;
+                  color: #8b0000;
+                  text-decoration: none;
+                  border-radius: 5px;
+                  font-weight: bold;
+                  font-size: 14px;">
+            ← Início
+        </a>
+
+        <!-- Botão Sair (só logado) -->
+        <a th:if="${session.usuarioId != null}"
+           href="/logout"
+           style="padding: 8px 16px;
+                  background-color: #ffe5e5;
+                  color: #8b0000;
+                  text-decoration: none;
+                  border-radius: 5px;
+                  font-weight: bold;
+                  font-size: 14px;">
+            Sair
+        </a>
+
+    </div>
+
+</header>
+
+</body>
+</html>

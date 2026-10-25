@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagamento - Churrasquinho System</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        main {
+            max-width: 720px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        h2 { margin-top: 0; }
+
+        .resumo-pedido {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+        }
+
+        .resumo-pedido .linha {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 14px;
+        }
+
+        .resumo-pedido .linha.total {
+            border-top: 2px solid #eee;
+            margin-top: 12px;
+            padding-top: 14px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #8b0000;
+        }
+
+        /* ─── Tabela de itens ─── */
+        .titulo-itens {
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 20px 0 10px;
+            color: #555;
+        }
+
+        table.itens {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 4px;
+        }
+
+        table.itens thead th {
+            background-color: #f0f0f0;
+            padding: 8px 10px;
+            font-size: 12px;
+            text-align: left;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        table.itens tbody td {
+            padding: 10px;
+            font-size: 14px;
+            border-bottom: 1px solid #eee;
+        }
+
+        table.itens tbody td:last-child,
+        table.itens thead th:last-child {
+            text-align: right;
+            font-weight: bold;
+            color: #8b0000;
+        }
+
+        table.itens tbody td:nth-child(2),
+        table.itens thead th:nth-child(2),
+        table.itens tbody td:nth-child(3),
+        table.itens thead th:nth-child(3) {
+            text-align: center;
+        }
+
+        .categoria-item {
+            display: block;
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* ─── Formas de pagamento ─── */
+        .formas {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .formas h3 {
+            margin-top: 0;
+            font-size: 1.05rem;
+        }
+
+        .opcoes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .opcao {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.15s;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .opcao:hover {
+            border-color: #8b0000;
+            background-color: #fff5f5;
+        }
+
+        .opcao input[type="radio"] {
+            cursor: pointer;
+            accent-color: #8b0000;
+        }
+
+        .opcao.selecionada {
+            border-color: #8b0000;
+            background-color: #fff5f5;
+        }
+
+        /* ─── QR Code (PIX) ─── */
+        .area-qrcode {
+            display: none;
+            text-align: center;
+            margin-top: 16px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border: 1px dashed #ccc;
+        }
+
+        .area-qrcode.visivel {
+            display: block;
+        }
+
+        .qrcode-fake {
+            width: 180px;
+            height: 180px;
+            margin: 0 auto 12px;
+            background-color: white;
+            border: 4px solid #333;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            padding: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .qrcode-fake div {
+            background-color: #333;
+            border-radius: 2px;
+        }
+
+        .qrcode-fake div.branco {
+            background-color: white;
+        }
+
+        .chave-pix {
+            font-family: monospace;
+            font-size: 13px;
+            color: #555;
+            background-color: #eee;
+            padding: 8px 12px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 8px;
+        }
+
+        .btn-confirmar {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 5px;
+            background-color: #8b0000;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 16px;
+        }
+
+        .btn-confirmar:hover {
+            background-color: #650000;
+        }
+
+        .btn-confirmar:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .aviso {
+            padding: 12px 16px;
+            border-radius: 5px;
+            margin-bottom: 16px;
+            border-left: 4px solid transparent;
+            font-size: 14px;
+        }
+
+        .aviso.erro {
+            background-color: #ffebee;
+            color: #b71c1c;
+            border-left-color: #b71c1c;
+        }
+
+        .voltar {
+            display: inline-block;
+            margin-top: 20px;
+            color: #8b0000;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .voltar:hover { text-decoration: underline; }
+
+        @media (max-width: 480px) {
+            .opcoes { grid-template-columns: 1fr; }
+
+            table.itens thead th:nth-child(3),
+            table.itens tbody td:nth-child(3) {
+                display: none; /* esconde coluna Preço em telas pequenas */
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div th:replace="~{fragments/header :: header('Pagamento do pedido')}"></div>
+
+<main>
+
+    <h2>💳 Pagamento</h2>
+
+    <div class="aviso erro" th:if="${erro}" th:text="${erro}"></div>
+
+    <!-- ============================================================
+         Resumo do pedido + Itens
+         ============================================================ -->
+    <div class="resumo-pedido">
+
+        <div class="linha">
+            <span>Pedido:</span>
+            <strong th:text="'#' + ${pedido.id}">#0</strong>
+        </div>
+
+        <div class="linha">
+            <span>Cliente:</span>
+            <span th:text="${pedido.cliente != null ? pedido.cliente.nome : '-'}">Cliente</span>
+        </div>
+
+        <div class="linha">
+            <span>Data:</span>
+            <span th:text="${#temporals.format(pedido.dataCriacao, 'dd/MM/yyyy HH:mm')}">
+                Data
+            </span>
+        </div>
+
+        <!-- Lista de itens -->
+        <div class="titulo-itens">Itens do pedido</div>
+
+        <table class="itens">
+            <thead>
+            <tr>
+                <th>Produto</th>
+                <th>Qtd</th>
+                <th>Preço</th>
+                <th>Subtotal</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            <tr th:each="item : ${pedido.itens}">
+                <td>
+                    <span th:text="${item.produto != null ? item.produto.nome : 'Produto'}">
+                        Produto
+                    </span>
+                    <span class="categoria-item"
+                          th:if="${item.produto != null and item.produto.categoria != null}"
+                          th:text="${item.produto.categoria.nome}">
+                        Categoria
+                    </span>
+                </td>
+
+                <td th:text="${item.quantidade}">1</td>
+
+                <td th:text="'R$ ' + ${#numbers.formatDecimal(item.precoUnitario, 1, 2)}">
+                    R$ 0,00
+                </td>
+
+                <td th:text="'R$ ' + ${#numbers.formatDecimal(item.subtotal, 1, 2)}">
+                    R$ 0,00
+                </td>
+            </tr>
+
+            </tbody>
+        </table>
+
+        <!-- Total -->
+        <div class="linha total">
+            <span>Total:</span>
+            <span th:text="'R$ ' + ${#numbers.formatDecimal(pedido.valorTotal, 1, 2)}">
+                R$ 0,00
+            </span>
+        </div>
+
+    </div>
+
+    <!-- ============================================================
+         Formas de pagamento
+         ============================================================ -->
+    <form th:action="@{'/pagamento/' + ${pedido.id} + '/confirmar'}"
+          method="post"
+          class="formas">
+
+        <h3>Escolha a forma de pagamento</h3>
+
+        <div class="opcoes">
+
+            <label class="opcao" data-forma="PIX">
+                <input type="radio" name="formaPagamento" value="PIX" required>
+                💠 PIX
+            </label>
+
+            <label class="opcao" data-forma="CARTAO_CREDITO">
+                <input type="radio" name="formaPagamento" value="CARTAO_CREDITO">
+                💳 Cartão de Crédito
+            </label>
+
+            <label class="opcao" data-forma="CARTAO_DEBITO">
+                <input type="radio" name="formaPagamento" value="CARTAO_DEBITO">
+                💳 Cartão de Débito
+            </label>
+
+            <label class="opcao" data-forma="DINHEIRO">
+                <input type="radio" name="formaPagamento" value="DINHEIRO">
+                💵 Dinheiro
+            </label>
+
+        </div>
+
+        <!-- Área do QR Code — só aparece se escolher PIX -->
+        <div id="areaQrcode" class="area-qrcode">
+            <div class="qrcode-fake" id="qrcodeFake"></div>
+            <div>
+                <small>Escaneie o QR Code com o app do seu banco</small>
+            </div>
+            <div class="chave-pix">
+                Chave PIX: churrasquinho@exemplo.com
+            </div>
+        </div>
+
+        <button type="submit" class="btn-confirmar" id="btnConfirmar" disabled>
+            Confirmar pagamento de R$
+            <span th:text="${#numbers.formatDecimal(pedido.valorTotal, 1, 2)}">0,00</span>
+        </button>
+
+    </form>
+
+    <a href="/meus-pedidos" class="voltar">← Voltar aos meus pedidos</a>
+
+</main>
+
+<script>
+    /* ============================================================
+       1. Gera o QR Code "fake"
+       ============================================================ */
+    const qrcodeFake = document.getElementById('qrcodeFake');
+    if (qrcodeFake) {
+        const padrao = [
+            1,1,1,1,1,1,1,0,
+            1,0,0,0,0,0,1,0,
+            1,0,1,0,1,0,1,0,
+            1,0,0,1,0,0,1,0,
+            1,0,1,0,1,0,1,0,
+            1,0,0,0,0,0,1,0,
+            1,1,1,1,1,1,1,0,
+            0,0,0,0,0,0,0,0
+        ];
+        padrao.forEach(bit => {
+            const cell = document.createElement('div');
+            if (!bit) cell.className = 'branco';
+            qrcodeFake.appendChild(cell);
+        });
+    }
+
+    /* ============================================================
+       2. Seleção de forma + QR Code
+       ============================================================ */
+    const opcoes = document.querySelectorAll('.opcao');
+    const areaQrcode = document.getElementById('areaQrcode');
+    const btnConfirmar = document.getElementById('btnConfirmar');
+
+    opcoes.forEach(op => {
+        op.addEventListener('click', () => {
+
+            opcoes.forEach(o => o.classList.remove('selecionada'));
+            op.classList.add('selecionada');
+
+            const radio = op.querySelector('input[type="radio"]');
+            radio.checked = true;
+
+            if (radio.value === 'PIX') {
+                areaQrcode.classList.add('visivel');
+            } else {
+                areaQrcode.classList.remove('visivel');
+            }
+
+            btnConfirmar.disabled = false;
+        });
+    });
+</script>
+
+</body>
+
+</html>

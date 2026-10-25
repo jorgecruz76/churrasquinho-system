@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Pedidos - Churrasquinho System</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .barra-acoes {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .barra-acoes h2 {
+            margin: 0;
+        }
+
+        .filtros {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filtros input,
+        .filtros select {
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+            min-width: 180px;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 16px;
+            font-size: 14px;
+            background-color: #8b0000;
+            color: white;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background-color: #650000;
+        }
+
+        button.secundario {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        button.secundario:hover {
+            background-color: #cfcfcf;
+        }
+
+        button.perigo {
+            background-color: #c62828;
+        }
+
+        button.perigo:hover {
+            background-color: #8e0000;
+        }
+
+        /* Lista de pedidos */
+        .lista-pedidos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 20px;
+        }
+
+        .card-pedido {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-left: 6px solid #999;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .card-pedido[data-status="PENDENTE"] {
+            border-color: #fbc02d;
+        }
+
+        .card-pedido[data-status="CONFIRMADO"] {
+            border-color: #1976d2;
+        }
+
+        .card-pedido[data-status="EM_PREPARACAO"] {
+            border-color: #f57c00;
+        }
+
+        .card-pedido[data-status="PRONTO"] {
+            border-color: #388e3c;
+        }
+
+        .card-pedido[data-status="SAIU_PARA_ENTREGA"] {
+            border-color: #7b1fa2;
+        }
+
+        .card-pedido[data-status="ENTREGUE"] {
+            border-color: #2e7d32;
+        }
+
+        .card-pedido[data-status="CANCELADO"] {
+            border-color: #c62828;
+            opacity: .75;
+        }
+
+        .card-pedido h3 {
+            margin: 0 0 4px;
+        }
+
+        .card-pedido p {
+            margin: 2px 0;
+            font-size: 14px;
+        }
+
+        .card-pedido .valor {
+            font-weight: bold;
+            color: #8b0000;
+            font-size: 16px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            background: #666;
+            align-self: flex-start;
+        }
+
+        /* ─── Lista de itens dentro do card ─── */
+        .itens-card {
+            border-top: 1px dashed #ddd;
+            padding-top: 8px;
+            margin-top: 4px;
+        }
+
+        .itens-card .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            font-size: 13px;
+            color: #555;
+            gap: 8px;
+        }
+
+        .itens-card .item .nome {
+            color: #333;
+            flex: 1;
+        }
+
+        .itens-card .item .qtd {
+            color: #888;
+            font-size: 12px;
+            margin-left: 4px;
+        }
+
+        .itens-card .item .subtotal {
+            font-weight: bold;
+            color: #8b0000;
+            white-space: nowrap;
+        }
+
+        .card-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .card-actions button {
+            font-size: 12px;
+            padding: 6px 10px;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal.hidden {
+            display: none;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            width: 90%;
+            max-width: 680px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+        }
+
+        .modal-content label {
+            display: block;
+            margin-top: 12px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .modal-content input,
+        .modal-content select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-top: 4px;
+            font-size: 14px;
+        }
+
+        /* ─── Linha de item no modal ─── */
+        .item-linha {
+            display: grid;
+            grid-template-columns: 1fr 120px 100px 90px 40px;
+            gap: 8px;
+            margin-top: 8px;
+            align-items: center;
+        }
+
+        /* ─── Controle de quantidade (− N +) ─── */
+        .controle-quantidade {
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow: hidden;
+            background-color: white;
+            height: 38px;
+        }
+
+        .controle-quantidade button {
+            width: 32px;
+            height: 36px;
+            border: none;
+            background-color: #f0f0f0;
+            color: #333;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.15s;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            border-radius: 0;
+        }
+
+        .controle-quantidade button:hover:not(:disabled) {
+            background-color: #8b0000;
+            color: white;
+        }
+
+        .controle-quantidade button:disabled {
+            background-color: #f0f0f0;
+            color: #bbb;
+            cursor: not-allowed;
+        }
+
+        .controle-quantidade .valor {
+            min-width: 36px;
+            text-align: center;
+            font-weight: bold;
+            background-color: white;
+            border-left: 1px solid #ccc;
+            border-right: 1px solid #ccc;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        /* ─── Subtotal do item ─── */
+        .item-subtotal {
+            font-weight: bold;
+            color: #8b0000;
+            font-size: 14px;
+            text-align: right;
+            padding: 8px 4px;
+            white-space: nowrap;
+        }
+
+        /* ─── Total do modal ─── */
+        .total-modal {
+            background-color: #fff8e1;
+            padding: 14px 18px;
+            border-radius: 6px;
+            border-left: 4px solid #fbc02d;
+            margin-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1rem;
+        }
+
+        .total-modal .rotulo {
+            color: #7a5b00;
+            font-weight: bold;
+        }
+
+        .total-modal .valor {
+            color: #8b0000;
+            font-weight: bold;
+            font-size: 1.3rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .detalhes-linha {
+            margin: 6px 0;
+            font-size: 14px;
+        }
+
+        .detalhes-linha strong {
+            display: inline-block;
+            min-width: 150px;
+        }
+
+        table.itens {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        table.itens th,
+        table.itens td {
+            border: 1px solid #ddd;
+            padding: 6px 8px;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        table.itens th {
+            background: #fafafa;
+        }
+
+        .mensagem-erro {
+            background: #ffebee;
+            color: #b71c1c;
+            padding: 12px 16px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #b71c1c;
+        }
+
+        .mensagem-erro.hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ⬇️ HEADER UNIFICADO -->
+    <div th:replace="~{fragments/header :: header('Gerenciamento de pedidos')}"></div>
+
+    <main>
+
+        <div class="barra-acoes">
+            <h2>Lista de Pedidos</h2>
+            <div class="filtros">
+                <input type="text" id="filtroCliente" placeholder="Filtrar por cliente...">
+                <select id="filtroStatus">
+                    <option value="">Todos os status</option>
+                    <option value="PENDENTE">Pendente</option>
+                    <option value="CONFIRMADO">Confirmado</option>
+                    <option value="EM_PREPARACAO">Em Preparação</option>
+                    <option value="PRONTO">Pronto</option>
+                    <option value="SAIU_PARA_ENTREGA">Saiu para Entrega</option>
+                    <option value="ENTREGUE">Entregue</option>
+                    <option value="CANCELADO">Cancelado</option>
+                </select>
+                <button id="btnImprimir" class="secundario">🖨 Imprimir</button>
+                <button id="btnAtualizar" class="secundario">🔄 Atualizar</button>
+                <button id="btnNovoPedido">+ Novo Pedido</button>
+            </div>
+        </div>
+
+        <div id="mensagemErro" class="mensagem-erro hidden"></div>
+
+        <section id="listaPedidos" class="lista-pedidos">
+            <!-- Preenchido via JS -->
+        </section>
+
+    </main>
+
+    <!-- Modal Novo Pedido -->
+    <div id="modalPedido" class="modal hidden">
+        <div class="modal-content">
+            <h2>Novo Pedido</h2>
+
+            <form id="formPedido">
+                <label for="clienteId">Cliente *</label>
+                <select id="clienteId" required>
+                    <option value="">Selecione o cliente...</option>
+                </select>
+
+                <h3 style="margin-top:20px">Itens do Pedido</h3>
+                <div id="itensContainer"></div>
+                <button type="button" id="btnAddItem" class="secundario" style="margin-top:10px">
+                    + Adicionar Item
+                </button>
+
+                <!-- Total geral em tempo real -->
+                <div class="total-modal">
+                    <span class="rotulo">Total:</span>
+                    <span class="valor" id="totalModal">R$ 0,00</span>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" id="btnCancelar" class="secundario">Cancelar</button>
+                    <button type="submit">Salvar Pedido</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Detalhes -->
+    <div id="modalDetalhes" class="modal hidden">
+        <div class="modal-content">
+            <h2>Detalhes do Pedido</h2>
+            <div id="detalhesConteudo"></div>
+            <div class="modal-actions">
+                <button type="button" id="btnFecharDetalhes" class="secundario">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ============================================================
+           CONFIGURAÇÃO
+           ============================================================ */
+        const API_PEDIDOS = '/pedidos';
+        const API_CLIENTES = '/clientes';
+        const API_PRODUTOS = '/produtos';
+
+        let clientesCache = [];
+        let produtosCache = [];
+
+        /* ============================================================
+           INICIALIZAÇÃO
+           ============================================================ */
+        document.addEventListener('DOMContentLoaded', async () => {
+            await carregarAuxiliares();
+            await carregarPedidos();
+
+            document.getElementById('btnAtualizar')
+                .addEventListener('click', carregarPedidos);
+
+            document.getElementById('filtroCliente')
+                .addEventListener('input', aplicarFiltros);
+
+            document.getElementById('filtroStatus')
+                .addEventListener('change', aplicarFiltros);
+
+            document.getElementById('btnNovoPedido')
+                .addEventListener('click', abrirModalNovo);
+
+            document.getElementById('btnCancelar')
+                .addEventListener('click', fecharModais);
+
+            document.getElementById('btnFecharDetalhes')
+                .addEventListener('click', fecharModais);
+
+            document.getElementById('btnAddItem')
+                .addEventListener('click', () => adicionarLinhaItem());
+
+            document.getElementById('formPedido')
+                .addEventListener('submit', salvarPedido);
+
+            document.getElementById('btnImprimir')
+                .addEventListener('click', imprimirTodos);
+        });
+
+        /* ============================================================
+           AUXILIARES
+           ============================================================ */
+        async function carregarAuxiliares() {
+            try {
+                const [rc, rp] = await Promise.all([
+                    fetch(API_CLIENTES),
+                    fetch(API_PRODUTOS)
+                ]);
+                clientesCache = rc.ok ? await rc.json() : [];
+                produtosCache = rp.ok ? await rp.json() : [];
+            } catch (e) {
+                console.warn('Falha ao carregar clientes/produtos', e);
+            }
+        }
+
+        /* ============================================================
+           LISTAGEM
+           ============================================================ */
+        async function carregarPedidos() {
+            const container = document.getElementById('listaPedidos');
+            container.innerHTML = '<p>Carregando pedidos...</p>';
+            esconderErro();
+
+            try {
+                const resp = await fetch(API_PEDIDOS);
+                if (!resp.ok) throw new Error('Erro ao buscar pedidos');
+                const pedidos = await resp.json();
+                renderizarPedidos(pedidos);
+            } catch (e) {
+                container.innerHTML = '';
+                mostrarErro(e.message);
+            }
+        }
+
+        function renderizarPedidos(pedidos) {
+            const container = document.getElementById('listaPedidos');
+            container.innerHTML = '';
+
+            if (!pedidos.length) {
+                container.innerHTML = '<p>Nenhum pedido cadastrado.</p>';
+                return;
+            }
+
+            pedidos
+                .sort((a, b) => b.id - a.id)
+                .forEach(p => container.appendChild(criarCardPedido(p)));
+
+            // Reaplica filtros após renderizar (importante quando o filtro está ativo)
+            aplicarFiltros();
+        }
+
+        function criarCardPedido(pedido) {
+            const card = document.createElement('div');
+            card.className = 'card-pedido';
+            card.dataset.status = pedido.status;
+            card.dataset.cliente = (pedido.cliente?.nome || pedido.cliente?.id || '')
+                .toString().toLowerCase();
+
+            const nomeCliente = pedido.cliente?.nome || `Cliente #${pedido.cliente?.id ?? '?'}`;
+            const valor = Number(pedido.valorTotal || 0).toFixed(2).replace('.', ',');
+            const qtdItens = pedido.itens?.length || 0;
+
+            // ─── Lista de itens do pedido ───
+            const itensHtml = (pedido.itens && pedido.itens.length)
+                ? pedido.itens.map(i => {
+                    const nomeProduto = i.produto?.nome || `Produto #${i.produto?.id ?? '?'}`;
+                    const subtotal = Number(i.subtotal || 0).toFixed(2).replace('.', ',');
+                    return `
+                <div class="item">
+                    <span class="nome">
+                        ${nomeProduto}
+                        <span class="qtd">(${i.quantidade}×)</span>
+                    </span>
+                    <span class="subtotal">R$ ${subtotal}</span>
+                </div>
+            `;
+                }).join('')
+                : '<div class="item"><span class="nome">Sem itens</span></div>';
+
+            card.innerHTML = `
+        <h3>Pedido #${pedido.id}</h3>
+        <span class="badge" style="background:${corStatus(pedido.status)}">
+            ${rotuloStatus(pedido.status)}
+        </span>
+        <p><strong>Cliente:</strong> ${nomeCliente}</p>
+        <p><strong>Itens:</strong> ${qtdItens}</p>
+        <p class="valor">R$ ${valor}</p>
+        <p><small>Criado em: ${formatarData(pedido.dataCriacao || pedido.dataPedido)}</small></p>
+
+        <div class="itens-card">
+            ${itensHtml}
+        </div>
+
+        <div class="card-actions">
+            <button data-acao="detalhes" class="secundario">👁 Detalhes</button>
+            <button data-acao="imprimir" class="secundario">🖨 Imprimir</button>
+            <button data-acao="proximo">➡ Próximo</button>
+            <button data-acao="cancelar" class="perigo">✖ Cancelar</button>
+            <button data-acao="excluir" class="perigo">🗑 Excluir</button>
+        </div>
+    `;
+
+            card.querySelector('[data-acao="detalhes"]')
+                .addEventListener('click', () => mostrarDetalhes(pedido.id));
+            card.querySelector('[data-acao="proximo"]')
+                .addEventListener('click', () => avancarStatus(pedido));
+            card.querySelector('[data-acao="cancelar"]')
+                .addEventListener('click', () => cancelarPedido(pedido));
+            card.querySelector('[data-acao="excluir"]')
+                .addEventListener('click', () => excluirPedido(pedido));
+            card.querySelector('[data-acao="imprimir"]')
+                .addEventListener('click', () => imprimirPedido(pedido.id));
+
+            return card;
+        }
+
+        /* ============================================================
+           FILTROS
+           ============================================================ */
+        function aplicarFiltros() {
+            const cliente = document.getElementById('filtroCliente').value.toLowerCase().trim();
+            const status = document.getElementById('filtroStatus').value;
+
+            document.querySelectorAll('.card-pedido').forEach(card => {
+                const okCliente = !cliente || card.dataset.cliente.includes(cliente);
+                const okStatus = !status || card.dataset.status === status;
+                card.style.display = (okCliente && okStatus) ? '' : 'none';
+            });
+        }
+
+        /* ============================================================
+           DETALHES
+           ============================================================ */
+        async function mostrarDetalhes(id) {
+            try {
+                const resp = await fetch(`${API_PEDIDOS}/${id}`);
+                if (!resp.ok) throw new Error('Pedido não encontrado');
+                const pedido = await resp.json();
+
+                const nomeCliente = pedido.cliente?.nome || `Cliente #${pedido.cliente?.id}`;
+                const itensHtml = (pedido.itens || []).map(i => `
+            <tr>
+                <td>${i.produto?.nome || 'Produto #' + i.produto?.id}</td>
+                <td>${i.quantidade}</td>
+                <td>R$ ${Number(i.precoUnitario).toFixed(2)}</td>
+                <td>R$ ${Number(i.subtotal).toFixed(2)}</td>
+            </tr>
+        `).join('') || '<tr><td colspan="4">Sem itens</td></tr>';
+
+                document.getElementById('detalhesConteudo').innerHTML = `
+            <div class="detalhes-linha"><strong>Pedido:</strong> #${pedido.id}</div>
+            <div class="detalhes-linha"><strong>Cliente:</strong> ${nomeCliente}</div>
+            <div class="detalhes-linha"><strong>Status:</strong>
+                <span class="badge" style="background:${corStatus(pedido.status)}">
+                    ${rotuloStatus(pedido.status)}
+                </span>
+            </div>
+            <div class="detalhes-linha"><strong>Valor Total:</strong> R$ ${Number(pedido.valorTotal).toFixed(2)}</div>
+            <div class="detalhes-linha"><strong>Data do Pedido:</strong> ${formatarData(pedido.dataPedido)}</div>
+            <div class="detalhes-linha"><strong>Criação:</strong> ${formatarData(pedido.dataCriacao)}</div>
+            <div class="detalhes-linha"><strong>Saída:</strong> ${pedido.dataSaida ? formatarData(pedido.dataSaida) : '-'}</div>
+            <div class="detalhes-linha"><strong>Entrega:</strong> ${pedido.dataEntrega ? formatarData(pedido.dataEntrega) : '-'}</div>
+
+            <h3 style="margin-top:16px">Itens</h3>
+            <table class="itens">
+                <thead>
+                    <tr><th>Produto</th><th>Qtd</th><th>Preço Unit.</th><th>Subtotal</th></tr>
+                </thead>
+                <tbody>${itensHtml}</tbody>
+            </table>
+        `;
+
+                abrirModal('modalDetalhes');
+            } catch (e) {
+                mostrarErro(e.message);
+            }
+        }
+
+        /* ============================================================
+           FLUXO DE STATUS
+           ============================================================ */
+        const FLUXO = {
+            PENDENTE: 'CONFIRMADO',
+            CONFIRMADO: 'EM_PREPARACAO',
+            EM_PREPARACAO: 'PRONTO',
+            PRONTO: 'SAIU_PARA_ENTREGA',
+            SAIU_PARA_ENTREGA: 'ENTREGUE'
+        };
+
+        async function avancarStatus(pedido) {
+            const proximo = FLUXO[pedido.status];
+            if (!proximo) {
+                mostrarErro('Este pedido não pode avançar de status.');
+                return;
+            }
+
+            if (!confirm(`Avançar pedido #${pedido.id} para ${rotuloStatus(proximo)}?`)) return;
+
+            try {
+                const resp = await fetch(
+                    `${API_PEDIDOS}/${pedido.id}/status?status=${proximo}`,
+                    { method: 'PATCH' }
+                );
+                if (!resp.ok) {
+                    const erro = await resp.text();
+                    throw new Error(erro || 'Falha ao atualizar status');
+                }
+
+                // ─── Reseta o filtro de status pra "Todos" ───
+                document.getElementById('filtroStatus').value = '';
+
+                // ─── Recarrega a lista (já com todos os status) ───
+                await carregarPedidos();
+
+            } catch (e) {
+                mostrarErro(e.message);
+            }
+        }
+
+        async function cancelarPedido(pedido) {
+            if (!confirm(`Cancelar o pedido #${pedido.id}?`)) return;
+
+            try {
+                const resp = await fetch(
+                    `${API_PEDIDOS}/${pedido.id}/status?status=CANCELADO`,
+                    { method: 'PATCH' }
+                );
+                if (!resp.ok) {
+                    const erro = await resp.text();
+                    throw new Error(erro || 'Não foi possível cancelar');
+                }
+
+                // ─── Reseta o filtro de status pra "Todos" ───
+                document.getElementById('filtroStatus').value = '';
+
+                await carregarPedidos();
+            } catch (e) {
+                mostrarErro(e.message);
+            }
+        }
+
+        async function excluirPedido(pedido) {
+            if (!confirm(`Excluir definitivamente o pedido #${pedido.id}?`)) return;
+
+            try {
+                const resp = await fetch(`${API_PEDIDOS}/${pedido.id}`, { method: 'DELETE' });
+                if (!resp.ok) {
+                    const erro = await resp.text();
+                    throw new Error(erro || 'Não foi possível excluir');
+                }
+
+                // ─── Reseta o filtro de status pra "Todos" ───
+                document.getElementById('filtroStatus').value = '';
+
+                await carregarPedidos();
+            } catch (e) {
+                mostrarErro(e.message);
+            }
+        }
+
+        /* ============================================================
+           MODAL NOVO PEDIDO
+           ============================================================ */
+        function abrirModalNovo() {
+            document.getElementById('formPedido').reset();
+
+            const selectCliente = document.getElementById('clienteId');
+            selectCliente.innerHTML = '<option value="">Selecione o cliente...</option>';
+            clientesCache.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = `${c.nome} (ID ${c.id})`;
+                selectCliente.appendChild(opt);
+            });
+
+            document.getElementById('itensContainer').innerHTML = '';
+            adicionarLinhaItem();
+
+            atualizarTotalModal(); // zera o total
+            abrirModal('modalPedido');
+        }
+
+        function adicionarLinhaItem() {
+            const container = document.getElementById('itensContainer');
+            const linha = document.createElement('div');
+            linha.className = 'item-linha';
+
+            const optionsProdutos = produtosCache
+                .map(p => `<option value="${p.id}">${p.nome} (R$ ${Number(p.preco).toFixed(2)})</option>`)
+                .join('');
+
+            linha.innerHTML = `
+        <select class="item-produto" required>
+            <option value="">Selecione o produto...</option>
+            ${optionsProdutos}
+        </select>
+
+        <div class="controle-quantidade">
+            <button type="button" class="btn-menos" title="Diminuir">−</button>
+            <div class="valor">1</div>
+            <button type="button" class="btn-mais" title="Aumentar">+</button>
+            <input type="hidden" class="item-quantidade" value="1">
+        </div>
+
+        <input type="number" class="item-preco" step="0.01" min="0" placeholder="Preço" required>
+
+        <div class="item-subtotal">R$ 0,00</div>
+
+        <button type="button" class="perigo btn-remover">✖</button>
+    `;
+
+            const select = linha.querySelector('.item-produto');
+            const inputPreco = linha.querySelector('.item-preco');
+            const inputQtd = linha.querySelector('.item-quantidade');
+            const displayQtd = linha.querySelector('.controle-quantidade .valor');
+            const displaySubtot = linha.querySelector('.item-subtotal');
+            const btnMais = linha.querySelector('.btn-mais');
+            const btnMenos = linha.querySelector('.btn-menos');
+
+            let qtd = 1;
+            let estoqueAtual = Infinity;
+
+            // Atualiza o subtotal dessa linha
+            function atualizarSubtotalLinha() {
+                const preco = Number(inputPreco.value) || 0;
+                const subtotal = preco * qtd;
+                displaySubtot.textContent =
+                    'R$ ' + subtotal.toFixed(2).replace('.', ',');
+                atualizarTotalModal();
+            }
+
+            function atualizarQtd() {
+                inputQtd.value = qtd;
+                displayQtd.textContent = qtd;
+                btnMenos.disabled = qtd <= 1;
+                btnMais.disabled = qtd >= estoqueAtual;
+                atualizarSubtotalLinha();
+            }
+
+            // Quando troca o produto, atualiza preço, estoque e subtotal
+            select.addEventListener('change', () => {
+                const prod = produtosCache.find(p => p.id == select.value);
+
+                if (prod) {
+                    inputPreco.value = Number(prod.preco).toFixed(2);
+                    estoqueAtual = prod.estoque || Infinity;
+                    qtd = 1;
+                    atualizarQtd();
+                } else {
+                    inputPreco.value = '';
+                    estoqueAtual = Infinity;
+                    atualizarQtd();
+                }
+            });
+
+            // Quando o preço é editado manualmente, atualiza subtotal
+            inputPreco.addEventListener('input', atualizarSubtotalLinha);
+
+            btnMais.addEventListener('click', () => {
+                if (qtd < estoqueAtual) {
+                    qtd++;
+                    atualizarQtd();
+                }
+            });
+
+            btnMenos.addEventListener('click', () => {
+                if (qtd > 1) {
+                    qtd--;
+                    atualizarQtd();
+                }
+            });
+
+            linha.querySelector('.btn-remover').addEventListener('click', () => {
+                linha.remove();
+                atualizarTotalModal();
+            });
+
+            container.appendChild(linha);
+        }
+
+        /**
+         * Percorre todas as linhas de item e recalcula o total do modal.
+         */
+        function atualizarTotalModal() {
+            let total = 0;
+
+            document.querySelectorAll('#itensContainer .item-linha').forEach(linha => {
+                const preco = Number(linha.querySelector('.item-preco').value) || 0;
+                const qtd = Number(linha.querySelector('.item-quantidade').value) || 0;
+                total += preco * qtd;
+            });
+
+            const el = document.getElementById('totalModal');
+            if (el) {
+                el.textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+            }
+        }
+
+        async function salvarPedido(evt) {
+            evt.preventDefault();
+
+            const clienteId = Number(document.getElementById('clienteId').value);
+            if (!clienteId) {
+                mostrarErro('Selecione um cliente.');
+                return;
+            }
+
+            const linhas = document.querySelectorAll('#itensContainer .item-linha');
+            if (!linhas.length) {
+                mostrarErro('Adicione ao menos um item.');
+                return;
+            }
+
+            const itens = [];
+            for (const linha of linhas) {
+                const produtoId = Number(linha.querySelector('.item-produto').value);
+                const quantidade = Number(linha.querySelector('.item-quantidade').value);
+                const precoUnitario = Number(linha.querySelector('.item-preco').value);
+
+                if (!produtoId || quantidade <= 0 || precoUnitario < 0) {
+                    mostrarErro('Preencha corretamente todos os itens.');
+                    return;
+                }
+
+                itens.push({
+                    produto: { id: produtoId },
+                    quantidade,
+                    precoUnitario,
+                    subtotal: precoUnitario * quantidade
+                });
+            }
+
+            const valorTotal = itens.reduce((s, i) => s + i.subtotal, 0);
+
+            const payload = {
+                cliente: { id: clienteId },
+                status: 'PENDENTE',
+                valorTotal,
+                itens
+            };
+
+            try {
+                const resp = await fetch(API_PEDIDOS, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!resp.ok) {
+                    const erro = await resp.text();
+                    throw new Error(erro || 'Falha ao salvar pedido');
+                }
+
+                fecharModais();
+                await carregarPedidos();
+            } catch (e) {
+                mostrarErro(e.message);
+            }
+        }
+
+        /* ============================================================
+           HELPERS
+           ============================================================ */
+        function abrirModal(id) { document.getElementById(id).classList.remove('hidden'); }
+
+        function fecharModais() {
+            document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
+            esconderErro();
+        }
+
+        function rotuloStatus(s) {
+            return {
+                PENDENTE: 'Pendente',
+                CONFIRMADO: 'Confirmado',
+                EM_PREPARACAO: 'Em Preparação',
+                PRONTO: 'Pronto',
+                SAIU_PARA_ENTREGA: 'Saiu para Entrega',
+                ENTREGUE: 'Entregue',
+                CANCELADO: 'Cancelado'
+            }[s] || s;
+        }
+
+        function corStatus(s) {
+            return {
+                PENDENTE: '#fbc02d',
+                CONFIRMADO: '#1976d2',
+                EM_PREPARACAO: '#f57c00',
+                PRONTO: '#388e3c',
+                SAIU_PARA_ENTREGA: '#7b1fa2',
+                ENTREGUE: '#2e7d32',
+                CANCELADO: '#c62828'
+            }[s] || '#666';
+        }
+
+        function formatarData(iso) {
+            if (!iso) return '-';
+            const d = new Date(iso);
+            return d.toLocaleString('pt-BR');
+        }
+
+        function mostrarErro(msg) {
+            const el = document.getElementById('mensagemErro');
+            el.textContent = '⚠ ' + msg;
+            el.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function esconderErro() {
+            document.getElementById('mensagemErro').classList.add('hidden');
+        }
+
+        /* ============================================================
+   IMPRESSÃO
+   ============================================================ */
+
+        /**
+         * Imprime um pedido específico.
+         */
+        function imprimirPedido(id) {
+            const url = `/imprimir-pedidos?id=${id}`;
+            window.open(url, '_blank');
+        }
+
+        /**
+         * Imprime TODOS os pedidos filtrados.
+         * Se o filtro de status estiver vazio ("Todos os status"),
+         * pede confirmação explícita.
+         */
+        function imprimirTodos() {
+            const status = document.getElementById('filtroStatus').value;
+            const cliente = document.getElementById('filtroCliente').value.trim();
+
+            // Conta quantos cards estão visíveis
+            const visiveis = Array.from(document.querySelectorAll('.card-pedido'))
+                .filter(card => card.style.display !== 'none').length;
+
+            if (visiveis === 0) {
+                alert('Nenhum pedido para imprimir.');
+                return;
+            }
+
+            // Se o filtro de status estiver vazio, confirma
+            if (!status && !cliente) {
+                const confirmar = confirm(
+                    `Você não aplicou filtros.\n\n` +
+                    `Isso vai imprimir TODOS os ${visiveis} pedidos, ` +
+                    `organizados por status.\n\n` +
+                    `Deseja continuar?`
+                );
+                if (!confirmar) return;
+            }
+
+            // Monta a URL com os filtros
+            const params = new URLSearchParams();
+            if (status) params.append('status', status);
+            if (cliente) params.append('cliente', cliente);
+
+            const url = '/imprimir-pedidos' + (params.toString() ? '?' + params.toString() : '');
+            window.open(url, '_blank');
+        }
+
+    </script>
+
+</body>
+
+</html>

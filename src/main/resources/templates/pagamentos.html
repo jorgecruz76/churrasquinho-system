@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Pagamentos - Churrasquinho System</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .barra-acoes {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .barra-acoes h2 { margin: 0; }
+
+        .filtros {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filtros input,
+        .filtros select {
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+            min-width: 180px;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 16px;
+            font-size: 14px;
+            background-color: #8b0000;
+            color: white;
+            transition: 0.2s;
+        }
+
+        button:hover { background-color: #650000; }
+
+        button.secundario {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+        button.secundario:hover { background-color: #cfcfcf; }
+
+        button.perigo { background-color: #c62828; }
+        button.perigo:hover { background-color: #8e0000; }
+
+        button.sucesso { background-color: #2e7d32; }
+        button.sucesso:hover { background-color: #1b5e20; }
+
+        /* Cards de pagamento */
+        .lista-pagamentos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .card-pagamento {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 6px solid #999;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .card-pagamento[data-status="PENDENTE"]  { border-color: #fbc02d; }
+        .card-pagamento[data-status="APROVADO"]  { border-color: #2e7d32; }
+        .card-pagamento[data-status="RECUSADO"]  { border-color: #c62828; }
+        .card-pagamento[data-status="CANCELADO"] { border-color: #757575; opacity: .75; }
+
+        .card-pagamento h3 { margin: 0 0 4px; }
+        .card-pagamento p  { margin: 2px 0; font-size: 14px; }
+        .card-pagamento .valor {
+            font-weight: bold;
+            color: #8b0000;
+            font-size: 16px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            background: #666;
+            align-self: flex-start;
+        }
+
+        .card-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .card-actions button {
+            font-size: 12px;
+            padding: 6px 10px;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal.hidden { display: none; }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            width: 90%;
+            max-width: 560px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .modal-content h2 { margin-top: 0; }
+
+        .modal-content label {
+            display: block;
+            margin-top: 12px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .modal-content input,
+        .modal-content select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-top: 4px;
+            font-size: 14px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .detalhes-linha { margin: 6px 0; font-size: 14px; }
+        .detalhes-linha strong { display: inline-block; min-width: 150px; }
+
+        .mensagem-erro {
+            background: #ffebee;
+            color: #b71c1c;
+            padding: 12px 16px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #b71c1c;
+        }
+
+        .mensagem-erro.hidden { display: none; }
+
+        .aviso {
+            background: #fff8e1;
+            color: #7a5b00;
+            padding: 10px 14px;
+            border-radius: 5px;
+            border-left: 4px solid #fbc02d;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ⬇️ HEADER UNIFICADO -->
+<div th:replace="~{fragments/header :: header('Gerenciamento de pagamentos')}"></div>
+
+<main>
+
+    <div class="barra-acoes">
+        <h2>Lista de Pagamentos</h2>
+        <div class="filtros">
+            <input type="text" id="filtroPedido" placeholder="Filtrar por pedido/cliente...">
+            <select id="filtroStatus">
+                <option value="">Todos os status</option>
+                <option value="PENDENTE">Pendente</option>
+                <option value="APROVADO">Aprovado</option>
+                <option value="RECUSADO">Recusado</option>
+                <option value="CANCELADO">Cancelado</option>
+            </select>
+            <select id="filtroForma">
+                <option value="">Todas as formas</option>
+                <option value="PIX">PIX</option>
+                <option value="DINHEIRO">Dinheiro</option>
+                <option value="CARTAO_CREDITO">Cartão de Crédito</option>
+                <option value="CARTAO_DEBITO">Cartão de Débito</option>
+            </select>
+            <button id="btnAtualizar" class="secundario">🔄 Atualizar</button>
+            <button id="btnNovoPagamento">+ Novo Pagamento</button>
+        </div>
+    </div>
+
+    <div id="mensagemErro" class="mensagem-erro hidden"></div>
+
+    <section id="listaPagamentos" class="lista-pagamentos">
+        <!-- Preenchido via JS -->
+    </section>
+
+</main>
+
+<!-- Modal Novo Pagamento -->
+<div id="modalPagamento" class="modal hidden">
+    <div class="modal-content">
+        <h2>Novo Pagamento</h2>
+
+        <form id="formPagamento">
+            <label for="pedidoId">Pedido *</label>
+            <select id="pedidoId" required>
+                <option value="">Carregando pedidos...</option>
+            </select>
+
+            <div class="aviso" id="avisoPedido">
+                Só é possível criar pagamento para pedidos que <strong>não estejam PENDENTE nem CANCELADO</strong> e que <strong>ainda não possuam pagamento</strong>.
+            </div>
+
+            <label for="formaPagamento">Forma de Pagamento *</label>
+            <select id="formaPagamento" required>
+                <option value="">Selecione...</option>
+                <option value="PIX">PIX</option>
+                <option value="DINHEIRO">Dinheiro</option>
+                <option value="CARTAO_CREDITO">Cartão de Crédito</option>
+                <option value="CARTAO_DEBITO">Cartão de Débito</option>
+            </select>
+
+            <label>Valor</label>
+            <input type="text" id="valorPagamento" readonly
+                   placeholder="Preenchido automaticamente pelo pedido">
+
+            <div class="modal-actions">
+                <button type="button" id="btnCancelar" class="secundario">Cancelar</button>
+                <button type="submit">Salvar Pagamento</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Detalhes -->
+<div id="modalDetalhes" class="modal hidden">
+    <div class="modal-content">
+        <h2>Detalhes do Pagamento</h2>
+        <div id="detalhesConteudo"></div>
+        <div class="modal-actions">
+            <button type="button" id="btnFecharDetalhes" class="secundario">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIGURAÇÃO
+   ============================================================ */
+const API_PAGAMENTOS = '/pagamentos';
+const API_PEDIDOS    = '/pedidos';
+
+let pedidosCache = [];
+let pagamentosCache = [];
+
+/* ============================================================
+   INICIALIZAÇÃO
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', async () => {
+    await carregarAuxiliares();
+    await carregarPagamentos();
+
+    document.getElementById('btnAtualizar')
+        .addEventListener('click', carregarPagamentos);
+
+    document.getElementById('filtroPedido')
+        .addEventListener('input', aplicarFiltros);
+
+    document.getElementById('filtroStatus')
+        .addEventListener('change', aplicarFiltros);
+
+    document.getElementById('filtroForma')
+        .addEventListener('change', aplicarFiltros);
+
+    document.getElementById('btnNovoPagamento')
+        .addEventListener('click', abrirModalNovo);
+
+    document.getElementById('btnCancelar')
+        .addEventListener('click', fecharModais);
+
+    document.getElementById('btnFecharDetalhes')
+        .addEventListener('click', fecharModais);
+
+    document.getElementById('formPagamento')
+        .addEventListener('submit', salvarPagamento);
+
+    document.getElementById('pedidoId')
+        .addEventListener('change', preencherValorDoPedido);
+});
+
+/* ============================================================
+   AUXILIARES
+   ============================================================ */
+async function carregarAuxiliares() {
+    try {
+        const resp = await fetch(API_PEDIDOS);
+        pedidosCache = resp.ok ? await resp.json() : [];
+    } catch (e) {
+        console.warn('Falha ao carregar pedidos', e);
+    }
+}
+
+/* ============================================================
+   LISTAGEM
+   ============================================================ */
+async function carregarPagamentos() {
+    const container = document.getElementById('listaPagamentos');
+    container.innerHTML = '<p>Carregando pagamentos...</p>';
+    esconderErro();
+
+    try {
+        const resp = await fetch(API_PAGAMENTOS);
+        if (!resp.ok) throw new Error('Erro ao buscar pagamentos');
+        pagamentosCache = await resp.json();
+        renderizarPagamentos(pagamentosCache);
+    } catch (e) {
+        container.innerHTML = '';
+        mostrarErro(e.message);
+    }
+}
+
+function renderizarPagamentos(pagamentos) {
+    const container = document.getElementById('listaPagamentos');
+    container.innerHTML = '';
+
+    if (!pagamentos.length) {
+        container.innerHTML = '<p>Nenhum pagamento cadastrado.</p>';
+        return;
+    }
+
+    pagamentos
+        .sort((a, b) => b.id - a.id)
+        .forEach(p => container.appendChild(criarCardPagamento(p)));
+}
+
+function criarCardPagamento(pagamento) {
+    const card = document.createElement('div');
+    card.className = 'card-pagamento';
+    card.dataset.status = pagamento.status;
+    card.dataset.forma  = pagamento.formaPagamento || '';
+
+    const nomeCliente = pagamento.pedido?.cliente?.nome
+        || `Pedido #${pagamento.pedido?.id ?? '?'}`;
+    const pedidoId    = pagamento.pedido?.id ?? '?';
+    const valor       = Number(pagamento.valor || 0).toFixed(2);
+
+    card.dataset.pedido = `${pedidoId} ${nomeCliente}`.toLowerCase();
+
+    card.innerHTML = `
+        <h3>Pagamento #${pagamento.id}</h3>
+        <span class="badge" style="background:${corStatus(pagamento.status)}">
+            ${rotuloStatus(pagamento.status)}
+        </span>
+        <p><strong>Pedido:</strong> #${pedidoId}</p>
+        <p><strong>Cliente:</strong> ${nomeCliente}</p>
+        <p><strong>Forma:</strong> ${rotuloForma(pagamento.formaPagamento)}</p>
+        <p class="valor">R$ ${valor}</p>
+        <p><small>Data: ${formatarData(pagamento.dataPagamento)}</small></p>
+        <div class="card-actions">
+            <button data-acao="detalhes" class="secundario">👁 Detalhes</button>
+            <button data-acao="aprovar" class="sucesso">✔ Aprovar</button>
+            <button data-acao="recusar">✖ Recusar</button>
+            <button data-acao="cancelar" class="perigo">🚫 Cancelar</button>
+            <button data-acao="excluir" class="perigo">🗑 Excluir</button>
+        </div>
+    `;
+
+    card.querySelector('[data-acao="detalhes"]')
+        .addEventListener('click', () => mostrarDetalhes(pagamento.id));
+    card.querySelector('[data-acao="aprovar"]')
+        .addEventListener('click', () => alterarStatus(pagamento, 'APROVADO'));
+    card.querySelector('[data-acao="recusar"]')
+        .addEventListener('click', () => alterarStatus(pagamento, 'RECUSADO'));
+    card.querySelector('[data-acao="cancelar"]')
+        .addEventListener('click', () => alterarStatus(pagamento, 'CANCELADO'));
+    card.querySelector('[data-acao="excluir"]')
+        .addEventListener('click', () => excluirPagamento(pagamento));
+
+    return card;
+}
+
+/* ============================================================
+   FILTROS
+   ============================================================ */
+function aplicarFiltros() {
+    const pedido = document.getElementById('filtroPedido').value.toLowerCase().trim();
+    const status = document.getElementById('filtroStatus').value;
+    const forma  = document.getElementById('filtroForma').value;
+
+    document.querySelectorAll('.card-pagamento').forEach(card => {
+        const okPedido = !pedido || card.dataset.pedido.includes(pedido);
+        const okStatus = !status || card.dataset.status === status;
+        const okForma  = !forma  || card.dataset.forma === forma;
+        card.style.display = (okPedido && okStatus && okForma) ? '' : 'none';
+    });
+}
+
+/* ============================================================
+   DETALHES
+   ============================================================ */
+async function mostrarDetalhes(id) {
+    try {
+        const resp = await fetch(`${API_PAGAMENTOS}/${id}`);
+        if (!resp.ok) throw new Error('Pagamento não encontrado');
+        const p = await resp.json();
+
+        const nomeCliente = p.pedido?.cliente?.nome || '-';
+        const pedidoId    = p.pedido?.id ?? '-';
+
+        document.getElementById('detalhesConteudo').innerHTML = `
+            <div class="detalhes-linha"><strong>Pagamento:</strong> #${p.id}</div>
+            <div class="detalhes-linha"><strong>Pedido:</strong> #${pedidoId}</div>
+            <div class="detalhes-linha"><strong>Cliente:</strong> ${nomeCliente}</div>
+            <div class="detalhes-linha"><strong>Status:</strong>
+                <span class="badge" style="background:${corStatus(p.status)}">
+                    ${rotuloStatus(p.status)}
+                </span>
+            </div>
+            <div class="detalhes-linha"><strong>Forma:</strong> ${rotuloForma(p.formaPagamento)}</div>
+            <div class="detalhes-linha"><strong>Valor:</strong> R$ ${Number(p.valor).toFixed(2)}</div>
+            <div class="detalhes-linha"><strong>Data do Pagamento:</strong> ${formatarData(p.dataPagamento)}</div>
+        `;
+
+        abrirModal('modalDetalhes');
+    } catch (e) {
+        mostrarErro(e.message);
+    }
+}
+
+/* ============================================================
+   ALTERAR STATUS
+   ============================================================ */
+async function alterarStatus(pagamento, novoStatus) {
+    if (!confirm(`Alterar status do pagamento #${pagamento.id} para ${rotuloStatus(novoStatus)}?`)) return;
+
+    try {
+        const resp = await fetch(
+            `${API_PAGAMENTOS}/${pagamento.id}/status?status=${novoStatus}`,
+            { method: 'PATCH' }
+        );
+        if (!resp.ok) {
+            const erro = await resp.text();
+            throw new Error(erro || 'Não foi possível alterar o status');
+        }
+        await carregarPagamentos();
+        await carregarAuxiliares(); // pedido pode ter virado CONFIRMADO
+    } catch (e) {
+        mostrarErro(e.message);
+    }
+}
+
+async function excluirPagamento(pagamento) {
+    if (!confirm(`Excluir definitivamente o pagamento #${pagamento.id}?`)) return;
+
+    try {
+        const resp = await fetch(`${API_PAGAMENTOS}/${pagamento.id}`, { method: 'DELETE' });
+        if (!resp.ok) {
+            const erro = await resp.text();
+            throw new Error(erro || 'Não foi possível excluir');
+        }
+        await carregarPagamentos();
+    } catch (e) {
+        mostrarErro(e.message);
+    }
+}
+
+/* ============================================================
+   MODAL NOVO PAGAMENTO
+   ============================================================ */
+function abrirModalNovo() {
+    document.getElementById('formPagamento').reset();
+    document.getElementById('valorPagamento').value = '';
+
+    const select = document.getElementById('pedidoId');
+    select.innerHTML = '<option value="">Selecione o pedido...</option>';
+
+    const idsComPagamento = new Set(
+        pagamentosCache.map(p => p.pedido?.id).filter(Boolean)
+    );
+
+    const elegiveis = pedidosCache.filter(p =>
+        p.status !== 'PENDENTE' &&
+        p.status !== 'CANCELADO' &&
+        !idsComPagamento.has(p.id)
+    );
+
+    if (!elegiveis.length) {
+        const opt = document.createElement('option');
+        opt.disabled = true;
+        opt.textContent = 'Nenhum pedido elegível para pagamento';
+        select.appendChild(opt);
+    } else {
+        elegiveis.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            const cliente = p.cliente?.nome || `Cliente #${p.cliente?.id ?? '?'}`;
+            opt.textContent = `Pedido #${p.id} — ${cliente} — R$ ${Number(p.valorTotal).toFixed(2)}`;
+            opt.dataset.valor = p.valorTotal;
+            select.appendChild(opt);
+        });
+    }
+
+    abrirModal('modalPagamento');
+}
+
+function preencherValorDoPedido() {
+    const select = document.getElementById('pedidoId');
+    const opt = select.options[select.selectedIndex];
+    const valor = opt?.dataset?.valor;
+
+    document.getElementById('valorPagamento').value =
+        valor ? `R$ ${Number(valor).toFixed(2)}` : '';
+}
+
+async function salvarPagamento(evt) {
+    evt.preventDefault();
+
+    const pedidoId = Number(document.getElementById('pedidoId').value);
+    const forma    = document.getElementById('formaPagamento').value;
+
+    if (!pedidoId) {
+        mostrarErro('Selecione um pedido.');
+        return;
+    }
+    if (!forma) {
+        mostrarErro('Selecione a forma de pagamento.');
+        return;
+    }
+
+    const payload = {
+        pedido: { id: pedidoId },
+        formaPagamento: forma
+        // valor e status são definidos pelo backend (PagamentoService)
+    };
+
+    try {
+        const resp = await fetch(API_PAGAMENTOS, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!resp.ok) {
+            const erro = await resp.text();
+            throw new Error(erro || 'Falha ao salvar pagamento');
+        }
+
+        fecharModais();
+        await carregarPagamentos();
+    } catch (e) {
+        mostrarErro(e.message);
+    }
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function abrirModal(id) { document.getElementById(id).classList.remove('hidden'); }
+
+function fecharModais() {
+    document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
+    esconderErro();
+}
+
+function rotuloStatus(s) {
+    return {
+        PENDENTE: 'Pendente',
+        APROVADO: 'Aprovado',
+        RECUSADO: 'Recusado',
+        CANCELADO: 'Cancelado'
+    }[s] || s;
+}
+
+function corStatus(s) {
+    return {
+        PENDENTE: '#fbc02d',
+        APROVADO: '#2e7d32',
+        RECUSADO: '#c62828',
+        CANCELADO: '#757575'
+    }[s] || '#666';
+}
+
+function rotuloForma(f) {
+    return {
+        PIX: 'PIX',
+        DINHEIRO: 'Dinheiro',
+        CARTAO_CREDITO: 'Cartão de Crédito',
+        CARTAO_DEBITO: 'Cartão de Débito'
+    }[f] || f || '-';
+}
+
+function formatarData(iso) {
+    if (!iso) return '-';
+    return new Date(iso).toLocaleString('pt-BR');
+}
+
+function mostrarErro(msg) {
+    const el = document.getElementById('mensagemErro');
+    el.textContent = '⚠ ' + msg;
+    el.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function esconderErro() {
+    document.getElementById('mensagemErro').classList.add('hidden');
+}
+</script>
+
+</body>
+
+</html>

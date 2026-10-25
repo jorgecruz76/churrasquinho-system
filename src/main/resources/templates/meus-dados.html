@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus dados - Churrasquinho System</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        main {
+            max-width: 640px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        h2 { margin-top: 0; text-align: center; }
+
+        .subtitulo {
+            text-align: center;
+            color: #666;
+            margin-bottom: 24px;
+            font-size: 15px;
+        }
+
+        .card {
+            background-color: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .aviso {
+            padding: 12px 16px;
+            border-radius: 5px;
+            margin-bottom: 16px;
+            border-left: 4px solid transparent;
+            font-size: 14px;
+        }
+
+        .aviso.erro {
+            background-color: #ffebee;
+            color: #b71c1c;
+            border-left-color: #b71c1c;
+        }
+
+        .aviso.sucesso {
+            background-color: #e8f5e9;
+            color: #1b5e20;
+            border-left-color: #2e7d32;
+        }
+
+        /* ─── Escolha: entrega ou retirada ─── */
+        .escolha {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .opcao {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 20px 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: center;
+            background-color: white;
+        }
+
+        .opcao:hover {
+            border-color: #8b0000;
+            background-color: #fff5f5;
+        }
+
+        .opcao.selecionada {
+            border-color: #8b0000;
+            background-color: #fff5f5;
+        }
+
+        .opcao .icone {
+            font-size: 32px;
+        }
+
+        .opcao .titulo {
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .opcao .descricao {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .opcao input[type="radio"] {
+            display: none;
+        }
+
+        /* ─── Campos de endereço ─── */
+        .campos-endereco {
+            display: none;
+        }
+
+        .campos-endereco.visivel {
+            display: block;
+        }
+
+        .titulo-endereco {
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #555;
+            border-top: 1px solid #eee;
+            padding-top: 16px;
+        }
+
+        .campos {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+
+        .campo {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .campo-completo { grid-column: 1 / -1; }
+
+        .campo label {
+            margin-bottom: 4px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .campo label .obrigatorio {
+            color: #c62828;
+        }
+
+        .campo input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        /* ─── Ações ─── */
+        .acoes {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .btn {
+            padding: 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-primario {
+            background-color: #8b0000;
+            color: white;
+        }
+
+        .btn-primario:hover {
+            background-color: #650000;
+        }
+
+        .btn-secundario {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secundario:hover {
+            background-color: #cfcfcf;
+        }
+
+        .endereco-existente {
+            background-color: #f0f8ff;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 12px;
+            border-left: 3px solid #1976d2;
+        }
+
+        @media (max-width: 600px) {
+            .escolha { grid-template-columns: 1fr; }
+            .campos { grid-template-columns: 1fr; }
+            .campo-completo { grid-column: auto; }
+        }
+    </style>
+</head>
+
+<body>
+
+<div th:replace="~{fragments/header :: header('Meus dados')}"></div>
+
+<main>
+
+    <h2>📦 Como você quer receber?</h2>
+    <p class="subtitulo">
+        Escolha uma opção pra continuar com o pagamento.
+    </p>
+
+    <div class="aviso erro" th:if="${erro}" th:text="${erro}"></div>
+
+    <div class="card">
+
+        <!-- Endereço existente -->
+        <div class="endereco-existente" th:if="${temEndereco}">
+            ✅ Você já tem um endereço cadastrado. Confirme ou edite abaixo.
+        </div>
+
+        <form method="post" action="/meus-dados" id="formDados">
+            <input type="hidden" name="pedidoId" th:value="${pedidoId}">
+
+            <!-- Escolha: entrega ou retirada -->
+            <div class="escolha">
+
+                <label class="opcao" data-tipo="ENTREGA" id="opcaoEntrega">
+                    <input type="radio" name="tipoEntrega" value="ENTREGA" required
+                           th:checked="${cliente == null or !temEndereco or true}">
+                    <span class="icone">🚚</span>
+                    <span class="titulo">Entrega</span>
+                    <span class="descricao">Receber em casa</span>
+                </label>
+
+                <label class="opcao" data-tipo="RETIRADA" id="opcaoRetirada">
+                    <input type="radio" name="tipoEntrega" value="RETIRADA">
+                    <span class="icone">🏪</span>
+                    <span class="titulo">Retirar na loja</span>
+                    <span class="descricao">Buscar no local</span>
+                </label>
+
+            </div>
+
+            <!-- Campos de endereço -->
+            <div class="campos-endereco visivel" id="camposEndereco">
+
+                <div class="titulo-endereco">📍 Endereço de entrega</div>
+
+                <div class="campos">
+
+                    <div class="campo campo-completo">
+                        <label for="logradouro">Logradouro <span class="obrigatorio">*</span></label>
+                        <input type="text" id="logradouro" name="logradouro"
+                               maxlength="150" th:value="${cliente?.logradouro}">
+                    </div>
+
+                    <div class="campo">
+                        <label for="numero">Número <span class="obrigatorio">*</span></label>
+                        <input type="text" id="numero" name="numero"
+                               maxlength="10" th:value="${cliente?.numero}">
+                    </div>
+
+                    <div class="campo">
+                        <label for="bairro">Bairro <span class="obrigatorio">*</span></label>
+                        <input type="text" id="bairro" name="bairro"
+                               maxlength="100" th:value="${cliente?.bairro}">
+                    </div>
+
+                    <div class="campo">
+                        <label for="cidade">Cidade <span class="obrigatorio">*</span></label>
+                        <input type="text" id="cidade" name="cidade"
+                               maxlength="100" th:value="${cliente?.cidade}">
+                    </div>
+
+                    <div class="campo">
+                        <label for="estado">Estado <span class="obrigatorio">*</span></label>
+                        <input type="text" id="estado" name="estado"
+                               maxlength="2" th:value="${cliente?.estado}">
+                    </div>
+
+                    <div class="campo">
+                        <label for="cep">CEP <span class="obrigatorio">*</span></label>
+                        <input type="text" id="cep" name="cep"
+                               maxlength="9" th:value="${cliente?.cep}">
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="acoes">
+                <button type="submit" class="btn btn-primario" id="btnConfirmar">
+                    Salvar e ir para pagamento
+                </button>
+            </div>
+
+        </form>
+
+        </div>
+
+    </div>
+
+</main>
+
+<script>
+    const opcoes = document.querySelectorAll('.opcao');
+    const camposEndereco = document.getElementById('camposEndereco');
+    const formDados = document.getElementById('formDados');
+    const formPular = document.getElementById('formPular');
+    const tipoEntregaPular = document.getElementById('tipoEntregaPular');
+
+    let tipoAtual = 'ENTREGA';
+
+    function atualizarTipo(tipo) {
+        tipoAtual = tipo;
+
+        // Atualiza visual
+        opcoes.forEach(op => {
+            op.classList.toggle('selecionada', op.dataset.tipo === tipo);
+        });
+
+        // Marca o radio correto
+        const radio = document.querySelector(
+            `input[name="tipoEntrega"][value="${tipo}"]`);
+        if (radio) radio.checked = true;
+
+        // Mostra/oculta endereço
+        if (tipo === 'ENTREGA') {
+            camposEndereco.classList.add('visivel');
+            habilitarObrigatoriosEndereco(true);
+        } else {
+            camposEndereco.classList.remove('visivel');
+            habilitarObrigatoriosEndereco(false);
+        }
+
+        // Atualiza o campo hidden do "pular"
+        tipoEntregaPular.value = tipo;
+    }
+
+    function habilitarObrigatoriosEndereco(habilitar) {
+        const ids = ['logradouro', 'numero', 'bairro', 'cidade', 'estado', 'cep'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                if (habilitar) el.setAttribute('required', 'required');
+                else el.removeAttribute('required');
+            }
+        });
+    }
+
+    opcoes.forEach(op => {
+        op.addEventListener('click', (e) => {
+            e.preventDefault();
+            atualizarTipo(op.dataset.tipo);
+        });
+    });
+
+    // Inicializa com ENTREGA
+    atualizarTipo('ENTREGA');
+
+    // ─── Função "pular" ───
+    function pular() {
+        formPular.submit();
+    }
+</script>
+
+</body>
+
+</html>

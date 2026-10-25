@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuários - Churrasquinho System</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .topo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .topo h2 { margin: 0; }
+
+        .filtros {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .filtros input,
+        .filtros select {
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+            min-width: 180px;
+        }
+
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.2s;
+            background-color: #8b0000;
+            color: white;
+        }
+
+        button:hover { background-color: #650000; }
+
+        button.secundario {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+        button.secundario:hover { background-color: #cfcfcf; }
+
+        button.perigo { background-color: #c62828; }
+        button.perigo:hover { background-color: #8e0000; }
+
+        button.sucesso { background-color: #2e7d32; }
+        button.sucesso:hover { background-color: #1b5e20; }
+
+        button.pequeno {
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+
+        .tabela-container {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #8b0000;
+            color: white;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .badge.tipo-adm         { background-color: #8b0000; }
+        .badge.tipo-cliente     { background-color: #1976d2; }
+        .badge.tipo-entregador  { background-color: #f57c00; }
+
+        .badge.status-ativo     { background-color: #2e7d32; }
+        .badge.status-inativo   { background-color: #757575; }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal.hidden { display: none; }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            width: 90%;
+            max-width: 520px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h2 { margin-top: 0; }
+
+        .modal-content label {
+            display: block;
+            margin-top: 12px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .modal-content input,
+        .modal-content select {
+            width: 100%;
+            padding: 9px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-top: 4px;
+            font-size: 14px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .mensagem {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 5px;
+            display: none;
+            border-left: 4px solid transparent;
+            font-size: 14px;
+        }
+
+        .mensagem.erro {
+            background-color: #ffebee;
+            color: #b71c1c;
+            border-left-color: #b71c1c;
+        }
+
+        .mensagem.sucesso {
+            background-color: #e8f5e9;
+            color: #1b5e20;
+            border-left-color: #2e7d32;
+        }
+
+        .mensagem.visivel { display: block; }
+
+        .aviso-senha {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body>
+
+<div th:replace="~{fragments/header :: header('Usuários do sistema')}"></div>
+
+<main>
+
+    <div class="topo">
+        <h2>👥 Usuários</h2>
+        <button onclick="abrirModalNovo()">+ Novo usuário</button>
+    </div>
+
+    <div id="mensagem" class="mensagem"></div>
+
+    <div class="filtros">
+        <input type="text" id="filtroNome" placeholder="🔍 Filtrar por nome ou e-mail...">
+        <select id="filtroTipo">
+            <option value="">Todos os tipos</option>
+            <option value="ADM">ADM</option>
+            <option value="CLIENTE">Cliente</option>
+            <option value="ENTREGADOR">Entregador</option>
+        </select>
+        <select id="filtroStatus">
+            <option value="">Todos os status</option>
+            <option value="true">Ativos</option>
+            <option value="false">Inativos</option>
+        </select>
+    </div>
+
+    <div class="tabela-container">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>E-mail</th>
+                <th>Tipo</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+            </thead>
+            <tbody id="tabelaUsuarios">
+            <!-- Preenchido via JS -->
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+<!-- Modal Novo/Editar -->
+<div id="modalUsuario" class="modal hidden">
+    <div class="modal-content">
+        <h2 id="tituloModal">Novo usuário</h2>
+
+        <form id="formUsuario">
+            <input type="hidden" id="usuarioId">
+
+            <label for="nome">Nome completo *</label>
+            <input type="text" id="nome" required>
+
+            <label for="email">E-mail *</label>
+            <input type="email" id="email" required>
+
+            <label for="tipo">Tipo *</label>
+            <select id="tipo" required>
+                <option value="CLIENTE">Cliente</option>
+                <option value="ENTREGADOR">Entregador</option>
+                <option value="ADM">ADM</option>
+            </select>
+
+            <label for="senha">Senha</label>
+            <input type="password" id="senha" minlength="6">
+            <div class="aviso-senha" id="avisoSenha">
+                Mínimo 6 caracteres.
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="secundario" onclick="fecharModal()">
+                    Cancelar
+                </button>
+                <button type="submit">Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // ─── Helpers ───
+    function mostrarMensagem(texto, tipo) {
+        const el = document.getElementById('mensagem');
+        el.textContent = texto;
+        el.className = 'mensagem visivel ' + tipo;
+        setTimeout(() => el.classList.remove('visivel'), 4000);
+    }
+
+    function abrirModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function fecharModal() {
+        document.getElementById('modalUsuario').classList.add('hidden');
+    }
+
+    // ─── Listar ───
+    async function carregarUsuarios() {
+        try {
+            const resp = await fetch('/usuarios');
+            if (!resp.ok) {
+                const txt = await resp.text();
+                throw new Error(txt || 'Erro ao carregar usuários.');
+            }
+            const usuarios = await resp.json();
+
+            const tabela = document.getElementById('tabelaUsuarios');
+            tabela.innerHTML = '';
+
+            usuarios.forEach(u => {
+                const linha = document.createElement('tr');
+                linha.dataset.nome = (u.nome || '').toLowerCase();
+                linha.dataset.email = (u.email || '').toLowerCase();
+                linha.dataset.tipo = u.tipo;
+                linha.dataset.ativo = String(u.ativo);
+
+                const tipoLabel = {
+                    ADM: 'ADM',
+                    CLIENTE: 'Cliente',
+                    ENTREGADOR: 'Entregador'
+                }[u.tipo] || u.tipo;
+
+                const tipoClasse = {
+                    ADM: 'tipo-adm',
+                    CLIENTE: 'tipo-cliente',
+                    ENTREGADOR: 'tipo-entregador'
+                }[u.tipo] || '';
+
+                linha.innerHTML = `
+                    <td>${u.id}</td>
+                    <td>${u.nome}</td>
+                    <td>${u.email}</td>
+                    <td><span class="badge ${tipoClasse}">${tipoLabel}</span></td>
+                    <td>
+                        <span class="badge ${u.ativo ? 'status-ativo' : 'status-inativo'}">
+                            ${u.ativo ? 'Ativo' : 'Inativo'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="secundario pequeno" onclick="abrirModalEditar(${u.id})">
+                            Editar
+                        </button>
+                        <button class="${u.ativo ? 'perigo' : 'sucesso'} pequeno"
+                                onclick="alternarAtivo(${u.id}, ${!u.ativo})">
+                            ${u.ativo ? 'Desativar' : 'Ativar'}
+                        </button>
+                        <button class="perigo pequeno" onclick="excluir(${u.id})">
+                            Excluir
+                        </button>
+                    </td>
+                `;
+                tabela.appendChild(linha);
+            });
+
+        } catch (e) {
+            mostrarMensagem(e.message, 'erro');
+        }
+    }
+
+    // ─── Modal Novo ───
+    function abrirModalNovo() {
+        document.getElementById('tituloModal').textContent = 'Novo usuário';
+        document.getElementById('usuarioId').value = '';
+        document.getElementById('formUsuario').reset();
+        document.getElementById('senha').required = true;
+        document.getElementById('avisoSenha').textContent = 'Mínimo 6 caracteres.';
+        abrirModal('modalUsuario');
+    }
+
+    // ─── Modal Editar ───
+    async function abrirModalEditar(id) {
+        try {
+            const resp = await fetch('/usuarios');
+            const usuarios = await resp.json();
+            const u = usuarios.find(x => x.id === id);
+            if (!u) throw new Error('Usuário não encontrado.');
+
+            document.getElementById('tituloModal').textContent =
+                'Editar usuário #' + u.id;
+            document.getElementById('usuarioId').value = u.id;
+            document.getElementById('nome').value = u.nome;
+            document.getElementById('email').value = u.email;
+            document.getElementById('tipo').value = u.tipo;
+            document.getElementById('senha').value = '';
+            document.getElementById('senha').required = false;
+            document.getElementById('avisoSenha').textContent =
+                'Deixe em branco para manter a senha atual.';
+
+            abrirModal('modalUsuario');
+        } catch (e) {
+            mostrarMensagem(e.message, 'erro');
+        }
+    }
+
+    // ─── Salvar (criar ou editar) ───
+    document.getElementById('formUsuario').addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+
+        const id = document.getElementById('usuarioId').value;
+
+        const dados = {
+            nome: document.getElementById('nome').value.trim(),
+            email: document.getElementById('email').value.trim().toLowerCase(),
+            tipo: document.getElementById('tipo').value,
+            senha: document.getElementById('senha').value
+        };
+
+        try {
+            const url = id ? `/usuarios/${id}` : '/usuarios';
+            const metodo = id ? 'PUT' : 'POST';
+
+            const resp = await fetch(url, {
+                method: metodo,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
+
+            if (!resp.ok) {
+                const txt = await resp.text();
+                throw new Error(txt || 'Erro ao salvar usuário.');
+            }
+
+            fecharModal();
+            mostrarMensagem(
+                id ? 'Usuário atualizado com sucesso.' : 'Usuário criado com sucesso.',
+                'sucesso'
+            );
+            carregarUsuarios();
+
+        } catch (e) {
+            mostrarMensagem(e.message, 'erro');
+        }
+    });
+
+    // ─── Ativar/Desativar ───
+    async function alternarAtivo(id, novoStatus) {
+        if (!confirm(`Deseja ${novoStatus ? 'ativar' : 'desativar'} este usuário?`)) return;
+
+        try {
+            const resp = await fetch(
+                `/usuarios/${id}/ativo?ativo=${novoStatus}`,
+                { method: 'PATCH' }
+            );
+            if (!resp.ok) {
+                const txt = await resp.text();
+                throw new Error(txt || 'Erro ao alterar status.');
+            }
+            mostrarMensagem('Status atualizado.', 'sucesso');
+            carregarUsuarios();
+        } catch (e) {
+            mostrarMensagem(e.message, 'erro');
+        }
+    }
+
+    // ─── Excluir ───
+    async function excluir(id) {
+        if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
+
+        try {
+            const resp = await fetch(`/usuarios/${id}`, { method: 'DELETE' });
+            if (!resp.ok) {
+                const txt = await resp.text();
+                throw new Error(txt || 'Erro ao excluir.');
+            }
+            mostrarMensagem('Usuário excluído.', 'sucesso');
+            carregarUsuarios();
+        } catch (e) {
+            mostrarMensagem(e.message, 'erro');
+        }
+    }
+
+    // ─── Filtros ───
+    function aplicarFiltros() {
+        const nome = document.getElementById('filtroNome').value.toLowerCase().trim();
+        const tipo = document.getElementById('filtroTipo').value;
+        const ativo = document.getElementById('filtroStatus').value;
+
+        document.querySelectorAll('#tabelaUsuarios tr').forEach(tr => {
+            const okNome = !nome
+                || tr.dataset.nome.includes(nome)
+                || tr.dataset.email.includes(nome);
+            const okTipo = !tipo || tr.dataset.tipo === tipo;
+            const okAtivo = !ativo || tr.dataset.ativo === ativo;
+            tr.style.display = (okNome && okTipo && okAtivo) ? '' : 'none';
+        });
+    }
+
+    document.getElementById('filtroNome').addEventListener('input', aplicarFiltros);
+    document.getElementById('filtroTipo').addEventListener('change', aplicarFiltros);
+    document.getElementById('filtroStatus').addEventListener('change', aplicarFiltros);
+
+    // ─── Init ───
+    carregarUsuarios();
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Entregas - Churrasquinho System</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .barra-acoes {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .barra-acoes h2 { margin: 0; }
+
+        .filtros {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filtros input,
+        .filtros select {
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+            min-width: 180px;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 16px;
+            font-size: 14px;
+            background-color: #8b0000;
+            color: white;
+            transition: 0.2s;
+        }
+
+        button:hover { background-color: #650000; }
+
+        button.secundario {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+        button.secundario:hover { background-color: #cfcfcf; }
+
+        button.perigo { background-color: #c62828; }
+        button.perigo:hover { background-color: #8e0000; }
+
+        button.sucesso { background-color: #2e7d32; }
+        button.sucesso:hover { background-color: #1b5e20; }
+
+        /* Cards */
+        .lista-entregas {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .card-entrega {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 6px solid #999;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .card-entrega[data-status="PENDENTE"]          { border-color: #fbc02d; }
+        .card-entrega[data-status="EM_PREPARACAO"]     { border-color: #f57c00; }
+        .card-entrega[data-status="SAIU_PARA_ENTREGA"] { border-color: #7b1fa2; }
+        .card-entrega[data-status="ENTREGUE"]          { border-color: #2e7d32; }
+        .card-entrega[data-status="CANCELADA"]         { border-color: #757575; opacity: .75; }
+
+        .card-entrega h3 { margin: 0 0 4px; }
+        .card-entrega p  { margin: 2px 0; font-size: 14px; }
+        .card-entrega .valor {
+            font-weight: bold;
+            color: #8b0000;
+            font-size: 16px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            background: #666;
+            align-self: flex-start;
+        }
+
+        .card-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .card-actions button {
+            font-size: 12px;
+            padding: 6px 10px;
+        }
+
+        /* Timeline simples */
+        .timeline {
+            display: flex;
+            gap: 6px;
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+            flex-wrap: wrap;
+        }
+
+        .timeline span {
+            background: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .timeline span.ativo {
+            background: #8b0000;
+            color: white;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal.hidden { display: none; }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            width: 90%;
+            max-width: 560px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .modal-content h2 { margin-top: 0; }
+
+        .modal-content label {
+            display: block;
+            margin-top: 12px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .modal-content input,
+        .modal-content select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-top: 4px;
+            font-size: 14px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .detalhes-linha { margin: 6px 0; font-size: 14px; }
+        .detalhes-linha strong { display: inline-block; min-width: 150px; }
+
+        .mensagem-erro {
+            background: #ffebee;
+            color: #b71c1c;
+            padding: 12px 16px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #b71c1c;
+        }
+
+        .mensagem-erro.hidden { display: none; }
+
+        .aviso {
+            background: #fff8e1;
+            color: #7a5b00;
+            padding: 10px 14px;
+            border-radius: 5px;
+            border-left: 4px solid #fbc02d;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ⬇️ HEADER UNIFICADO -->
+<div th:replace="~{fragments/header :: header('Gerenciamento de entregas')}"></div>
+
+<main>
+
+    <div class="barra-acoes">
+        <h2>Lista de Entregas</h2>
+        <div class="filtros">
+            <input type="text" id="filtroPedido" placeholder="Filtrar por pedido/cliente...">
+            <select id="filtroStatus">
+                <option value="">Todos os status</option>
+                <option value="PENDENTE">Pendente</option>
+                <option value="EM_PREPARACAO">Em Preparação</option>
+                <option value="SAIU_PARA_ENTREGA">Saiu para Entrega</option>
+                <option value="ENTREGUE">Entregue</option>
+                <option value="CANCELADA">Cancelada</option>
+            </select>
+            <button id="btnAtualizar" class="secundario">🔄 Atualizar</button>
+            <button id="btnNovaEntrega">+ Nova Entrega</button>
+        </div>
+    </div>
+
+    <div id="mensagemErro" class="mensagem-erro hidden"></div>
+
+    <section id="listaEntregas" class="lista-entregas">
+        <!-- Preenchido via JS -->
+    </section>
+
+</main>
+
+<!-- Modal Nova Entrega -->
+<div id="modalEntrega" class="modal hidden">
+    <div class="modal-content">
+        <h2>Nova Entrega</h2>
+
+        <form id="formEntrega">
+            <label for="pedidoId">Pedido *</label>
+            <select id="pedidoId" required>
+                <option value="">Carregando pedidos...</option>
+            </select>
+
+            <div class="aviso">
+                Só é possível criar entrega para pedidos que <strong>ainda não possuam entrega</strong>.
+                O status inicial será <strong>PENDENTE</strong>.
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" id="btnCancelar" class="secundario">Cancelar</button>
+                <button type="submit">Salvar Entrega</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Detalhes -->
+<div id="modalDetalhes" class="modal hidden">
+    <div class="modal-content">
+        <h2>Detalhes da Entrega</h2>
+        <div id="detalhesConteudo"></div>
+        <div class="modal-actions">
+            <button type="button" id="btnFecharDetalhes" class="secundario">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIGURAÇÃO
+   ============================================================ */
+const API_ENTREGAS = '/entregas';
+const API_PEDIDOS  = '/pedidos';
+
+let pedidosCache = [];
+let entregasCache = [];
+
+/* ============================================================
+   FLUXO DE STATUS (espelha o EntregaService)
+   ============================================================ */
+const FLUXO = {
+    PENDENTE: 'EM_PREPARACAO',
+    EM_PREPARACAO: 'SAIU_PARA_ENTREGA',
+    SAIU_PARA_ENTREGA: 'ENTREGUE'
+    // ENTREGUE e CANCELADA são finais
+};
+
+/* ============================================================
+   INICIALIZAÇÃO
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', async () => {
+    await carregarAuxiliares();
+    await carregarEntregas();
+
+    document.getElementById('btnAtualizar')
+        .addEventListener('click', carregarEntregas);
+
+    document.getElementById('filtroPedido')
+        .addEventListener('input', aplicarFiltros);
+
+    document.getElementById('filtroStatus')
+        .addEventListener('change', aplicarFiltros);
+
+    document.getElementById('btnNovaEntrega')
+        .addEventListener('click', abrirModalNova);
+
+    document.getElementById('btnCancelar')
+        .addEventListener('click', fecharModais);
+
+    document.getElementById('btnFecharDetalhes')
+        .addEventListener('click', fecharModais);
+
+    document.getElementById('formEntrega')
+        .addEventListener('submit', salvarEntrega);
+});
+
+/* ============================================================
+   AUXILIARES
+   ============================================================ */
+async function carregarAuxiliares() {
+    try {
+        const resp = await fetch(API_PEDIDOS);
+        pedidosCache = resp.ok ? await resp.json() : [];
+    } catch (e) {
+        console.warn('Falha ao carregar pedidos', e);
+    }
+}
+
+/* ============================================================
+   LISTAGEM
+   ============================================================ */
+async function carregarEntregas() {
+    const container = document.getElementById('listaEntregas');
+    container.innerHTML = '<p>Carregando entregas...</p>';
+    esconderErro();
+
+    try {
+        const resp = await fetch(API_ENTREGAS);
+        if (!resp.ok) throw new Error('Erro ao buscar entregas');
+        entregasCache = await resp.json();
+        renderizarEntregas(entregasCache);
+    } catch (e) {
+        container.innerHTML = '';
+        mostrarErro(e.message);
+    }
+}
+
+function renderizarEntregas(entregas) {
+    const container = document.getElementById('listaEntregas');
+    container.innerHTML = '';
+
+    if (!entregas.length) {
+        container.innerHTML = '<p>Nenhuma entrega cadastrada.</p>';
+        return;
+    }
+
+    entregas
+        .sort((a, b) => b.id - a.id)
+        .forEach(e => container.appendChild(criarCardEntrega(e)));
+}
+
+function criarCardEntrega(entrega) {
+    const card = document.createElement('div');
+    card.className = 'card-entrega';
+    card.dataset.status = entrega.status;
+
+    const pedidoId    = entrega.pedido?.id ?? '?';
+    const nomeCliente = entrega.pedido?.cliente?.nome
+        || `Cliente #${entrega.pedido?.cliente?.id ?? '?'}`;
+    const valorPedido = Number(entrega.pedido?.valorTotal || 0).toFixed(2);
+
+    card.dataset.pedido = `${pedidoId} ${nomeCliente}`.toLowerCase();
+
+    const podeAvancar = !!FLUXO[entrega.status];
+    const proximo     = FLUXO[entrega.status];
+
+    card.innerHTML = `
+        <h3>Entrega #${entrega.id}</h3>
+        <span class="badge" style="background:${corStatus(entrega.status)}">
+            ${rotuloStatus(entrega.status)}
+        </span>
+        <p><strong>Pedido:</strong> #${pedidoId}</p>
+        <p><strong>Cliente:</strong> ${nomeCliente}</p>
+        <p class="valor">R$ ${valorPedido}</p>
+        <p><small>Criada em: ${formatarData(entrega.dataCriacao)}</small></p>
+
+        <div class="timeline">
+            <span class="${entrega.status === 'PENDENTE' ? 'ativo' : ''}">Pendente</span>
+            <span class="${entrega.status === 'EM_PREPARACAO' ? 'ativo' : ''}">Em Preparação</span>
+            <span class="${entrega.status === 'SAIU_PARA_ENTREGA' ? 'ativo' : ''}">Saiu</span>
+            <span class="${entrega.status === 'ENTREGUE' ? 'ativo' : ''}">Entregue</span>
+        </div>
+
+        <div class="card-actions">
+            <button data-acao="detalhes" class="secundario">👁 Detalhes</button>
+            ${podeAvancar ? `
+                <button data-acao="proximo" class="sucesso">
+                    ➡ ${rotuloStatus(proximo)}
+                </button>
+            ` : ''}
+            <button data-acao="excluir" class="perigo">🗑 Excluir</button>
+        </div>
+    `;
+
+    card.querySelector('[data-acao="detalhes"]')
+        .addEventListener('click', () => mostrarDetalhes(entrega.id));
+
+    const btnProximo = card.querySelector('[data-acao="proximo"]');
+    if (btnProximo) {
+        btnProximo.addEventListener('click', () => avancarStatus(entrega));
+    }
+
+    card.querySelector('[data-acao="excluir"]')
+        .addEventListener('click', () => excluirEntrega(entrega));
+
+    return card;
+}
+
+/* ============================================================
+   FILTROS
+   ============================================================ */
+function aplicarFiltros() {
+    const pedido = document.getElementById('filtroPedido').value.toLowerCase().trim();
+    const status = document.getElementById('filtroStatus').value;
+
+    document.querySelectorAll('.card-entrega').forEach(card => {
+        const okPedido = !pedido || card.dataset.pedido.includes(pedido);
+        const okStatus = !status || card.dataset.status === status;
+        card.style.display = (okPedido && okStatus) ? '' : 'none';
+    });
+}
+
+/* ============================================================
+   DETALHES
+   ============================================================ */
+async function mostrarDetalhes(id) {
+    try {
+        const resp = await fetch(`${API_ENTREGAS}/${id}`);
+        if (!resp.ok) throw new Error('Entrega não encontrada');
+        const e = await resp.json();
+
+        const nomeCliente = e.pedido?.cliente?.nome || '-';
+        const pedidoId    = e.pedido?.id ?? '-';
+
+        document.getElementById('detalhesConteudo').innerHTML = `
+            <div class="detalhes-linha"><strong>Entrega:</strong> #${e.id}</div>
+            <div class="detalhes-linha"><strong>Pedido:</strong> #${pedidoId}</div>
+            <div class="detalhes-linha"><strong>Cliente:</strong> ${nomeCliente}</div>
+            <div class="detalhes-linha"><strong>Status:</strong>
+                <span class="badge" style="background:${corStatus(e.status)}">
+                    ${rotuloStatus(e.status)}
+                </span>
+            </div>
+            <div class="detalhes-linha"><strong>Valor do Pedido:</strong> R$ ${Number(e.pedido?.valorTotal || 0).toFixed(2)}</div>
+            <div class="detalhes-linha"><strong>Criada em:</strong> ${formatarData(e.dataCriacao)}</div>
+            <div class="detalhes-linha"><strong>Saída:</strong> ${e.dataSaida ? formatarData(e.dataSaida) : '-'}</div>
+            <div class="detalhes-linha"><strong>Entrega:</strong> ${e.dataEntrega ? formatarData(e.dataEntrega) : '-'}</div>
+        `;
+
+        abrirModal('modalDetalhes');
+    } catch (e) {
+        mostrarErro(e.message);
+    }
+}
+
+/* ============================================================
+   AVANÇAR STATUS
+   ============================================================ */
+async function avancarStatus(entrega) {
+    const proximo = FLUXO[entrega.status];
+    if (!proximo) {
+        mostrarErro('Esta entrega não pode avançar de status.');
+        return;
+    }
+
+    if (!confirm(`Avançar entrega #${entrega.id} para ${rotuloStatus(proximo)}?`)) return;
+
+    try {
+        const resp = await fetch(
+            `${API_ENTREGAS}/${entrega.id}/status?status=${proximo}`,
+            { method: 'PATCH' }
+        );
+        if (!resp.ok) {
+            const erro = await resp.text();
+            throw new Error(erro || 'Não foi possível alterar o status');
+        }
+        await carregarEntregas();
+        await carregarAuxiliares();
+    } catch (e) {
+        mostrarErro(e.message);
+    }
+}
+
+async function excluirEntrega(entrega) {
+    if (!confirm(`Excluir definitivamente a entrega #${entrega.id}?`)) return;
+
+    try {
+        const resp = await fetch(`${API_ENTREGAS}/${entrega.id}`, { method: 'DELETE' });
+        if (!resp.ok) {
+            const erro = await resp.text();
+            throw new Error(erro || 'Não foi possível excluir');
+        }
+        await carregarEntregas();
+    } catch (e) {
+        mostrarErro(e.message);
+    }
+}
+
+/* ============================================================
+   MODAL NOVA ENTREGA
+   ============================================================ */
+function abrirModalNova() {
+    document.getElementById('formEntrega').reset();
+
+    const select = document.getElementById('pedidoId');
+    select.innerHTML = '<option value="">Selecione o pedido...</option>';
+
+    const idsComEntrega = new Set(
+        entregasCache
+            .map(e => e.pedido?.id)
+            .filter(Boolean)
+            .map(id => String(id))
+    );
+
+    const elegiveis = pedidosCache.filter(p => {
+        const id = String(p.id);
+        return !idsComEntrega.has(id);
+    });
+
+    if (!elegiveis.length) {
+        const opt = document.createElement('option');
+        opt.disabled = true;
+        opt.textContent = 'Nenhum pedido elegível para entrega';
+        select.appendChild(opt);
+    } else {
+        elegiveis.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            const cliente = p.cliente?.nome || `Cliente #${p.cliente?.id ?? '?'}`;
+            opt.textContent = `Pedido #${p.id} — ${cliente} — R$ ${Number(p.valorTotal).toFixed(2)}`;
+            select.appendChild(opt);
+        });
+    }
+
+    abrirModal('modalEntrega');
+}
+
+async function salvarEntrega(evt) {
+    evt.preventDefault();
+
+    const pedidoId = Number(document.getElementById('pedidoId').value);
+    if (!pedidoId) {
+        mostrarErro('Selecione um pedido.');
+        return;
+    }
+
+    const payload = {
+        pedido: { id: pedidoId }
+        // status e datas são definidos pelo backend (EntregaService)
+    };
+
+    try {
+        const resp = await fetch(API_ENTREGAS, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!resp.ok) {
+            const erro = await resp.text();
+            throw new Error(erro || 'Falha ao salvar entrega');
+        }
+
+        fecharModais();
+        await carregarEntregas();
+    } catch (e) {
+        mostrarErro(e.message);
+    }
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function abrirModal(id) { document.getElementById(id).classList.remove('hidden'); }
+
+function fecharModais() {
+    document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
+    esconderErro();
+}
+
+function rotuloStatus(s) {
+    return {
+        PENDENTE: 'Pendente',
+        EM_PREPARACAO: 'Em Preparação',
+        SAIU_PARA_ENTREGA: 'Saiu para Entrega',
+        ENTREGUE: 'Entregue',
+        CANCELADA: 'Cancelada'
+    }[s] || s;
+}
+
+function corStatus(s) {
+    return {
+        PENDENTE: '#fbc02d',
+        EM_PREPARACAO: '#f57c00',
+        SAIU_PARA_ENTREGA: '#7b1fa2',
+        ENTREGUE: '#2e7d32',
+        CANCELADA: '#757575'
+    }[s] || '#666';
+}
+
+function formatarData(iso) {
+    if (!iso) return '-';
+    return new Date(iso).toLocaleString('pt-BR');
+}
+
+function mostrarErro(msg) {
+    const el = document.getElementById('mensagemErro');
+    el.textContent = '⚠ ' + msg;
+    el.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function esconderErro() {
+    document.getElementById('mensagemErro').classList.add('hidden');
+}
+</script>
+
+</body>
+
+</html>

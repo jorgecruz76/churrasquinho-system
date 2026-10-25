@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrinho - Churrasquinho System</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* ─── Topo: título + botão limpar ─── */
+        .topo-carrinho {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .topo-carrinho h2 {
+            margin: 0;
+        }
+
+        .btn-limpar {
+            padding: 8px 16px;
+            background-color: #c62828;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-limpar:hover {
+            background-color: #8e0000;
+        }
+
+        .tabela-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        th {
+            background-color: #8b0000;
+            color: white;
+        }
+
+        .subtotal {
+            font-weight: bold;
+            color: #8b0000;
+        }
+
+        /* ─── Controle − N + ─── */
+        .controle-quantidade {
+            display: inline-flex;
+            align-items: center;
+            gap: 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .controle-quantidade button {
+            width: 30px;
+            height: 30px;
+            border: none;
+            background-color: #f0f0f0;
+            color: #333;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .controle-quantidade button:hover:not(:disabled) {
+            background-color: #8b0000;
+            color: white;
+        }
+
+        .controle-quantidade button:disabled {
+            background-color: #f0f0f0;
+            color: #bbb;
+            cursor: not-allowed;
+        }
+
+        .controle-quantidade .valor {
+            min-width: 40px;
+            text-align: center;
+            font-weight: bold;
+            background-color: white;
+            border-left: 1px solid #ccc;
+            border-right: 1px solid #ccc;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .total-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .total-container .total {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #8b0000;
+        }
+
+        .acoes {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button,
+        .botao {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            transition: 0.2s;
+        }
+
+        .btn-primario {
+            background-color: #8b0000;
+            color: white;
+            font-weight: bold;
+        }
+
+        .btn-primario:hover {
+            background-color: #650000;
+        }
+
+        .btn-secundario {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secundario:hover {
+            background-color: #cfcfcf;
+        }
+
+        .btn-remover {
+            background-color: #c62828;
+            color: white;
+            font-size: 12px;
+            padding: 6px 12px;
+        }
+
+        .btn-remover:hover {
+            background-color: #8e0000;
+        }
+
+        .vazio {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .aviso {
+            padding: 12px 16px;
+            border-radius: 5px;
+            margin-bottom: 16px;
+            border-left: 4px solid transparent;
+            font-size: 14px;
+        }
+
+        .aviso.erro {
+            background-color: #ffebee;
+            color: #b71c1c;
+            border-left-color: #b71c1c;
+        }
+
+        .aviso.sucesso {
+            background-color: #e8f5e9;
+            color: #1b5e20;
+            border-left-color: #2e7d32;
+        }
+
+        .aviso.aviso-info {
+            background-color: #fff8e1;
+            color: #7a5b00;
+            border-left-color: #fbc02d;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div th:replace="~{fragments/header :: header('Meu carrinho')}"></div>
+
+    <main>
+
+        <!-- Topo: título + botão limpar (só se tiver itens) -->
+        <div class="topo-carrinho">
+            <h2>🛒 Meu carrinho</h2>
+
+            <form th:if="${itens != null and !itens.isEmpty()}" action="/carrinho/limpar" method="post"
+                style="margin: 0;">
+                <button type="submit" class="btn-limpar"
+                    onclick="return confirm('Tem certeza que deseja esvaziar o carrinho?')">
+                    🗑 Limpar carrinho
+                </button>
+            </form>
+        </div>
+
+        <div class="aviso erro" th:if="${erro}" th:text="${erro}"></div>
+        <div class="aviso sucesso" th:if="${sucesso}" th:text="${sucesso}"></div>
+        <div class="aviso aviso-info" th:if="${aviso}" th:text="${aviso}"></div>
+
+
+        <!-- Carrinho vazio -->
+        <div th:if="${itens == null or itens.isEmpty()}" class="vazio">
+            <h3>Seu carrinho está vazio</h3>
+            <p>Explore o catálogo e adicione produtos.</p>
+            <a href="/catalogo" class="botao btn-primario">Ir ao catálogo</a>
+        </div>
+
+        <!-- Carrinho com itens -->
+        <div th:if="${itens != null and !itens.isEmpty()}">
+
+            <div class="tabela-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Categoria</th>
+                            <th>Preço</th>
+                            <th>Qtd</th>
+                            <th>Subtotal</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="item : ${itens}">
+                            <td th:text="${item.produto.nome}">Produto</td>
+
+                            <td th:text="${item.produto.categoria != null ? item.produto.categoria.nome : '-'}">
+                                Categoria
+                            </td>
+
+                            <td th:text="'R$ ' + ${#numbers.formatDecimal(item.produto.preco, 1, 2)}">
+                                R$ 0,00
+                            </td>
+
+                            <td>
+                                <div class="controle-quantidade">
+
+                                    <form th:action="@{'/carrinho/alterar/' + ${item.produto.id}}" method="post"
+                                        style="margin: 0;">
+                                        <input type="hidden" name="quantidade" th:value="${item.quantidade - 1}">
+                                        <button type="submit"
+                                            th:title="${item.quantidade <= 1 ? 'Remover' : 'Diminuir'}">
+                                            −
+                                        </button>
+                                    </form>
+
+                                    <div class="valor" th:text="${item.quantidade}">1</div>
+
+                                    <form th:action="@{'/carrinho/alterar/' + ${item.produto.id}}" method="post"
+                                        style="margin: 0;">
+                                        <input type="hidden" name="quantidade" th:value="${item.quantidade + 1}">
+                                        <button type="submit" th:disabled="${item.quantidade >= item.produto.estoque}"
+                                            title="Aumentar">
+                                            +
+                                        </button>
+                                    </form>
+
+                                </div>
+                            </td>
+
+                            <td class="subtotal" th:text="'R$ ' + ${#numbers.formatDecimal(item.subtotal, 1, 2)}">
+                                R$ 0,00
+                            </td>
+
+                            <td>
+                                <form th:action="@{'/carrinho/remover/' + ${item.produto.id}}" method="post"
+                                    style="margin: 0;">
+                                    <button type="submit" class="btn-remover">Remover</button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="total-container">
+                <div>
+                    <span>Total: </span>
+                    <span class="total" th:text="'R$ ' + ${#numbers.formatDecimal(total, 1, 2)}">
+                        R$ 0,00
+                    </span>
+                </div>
+
+                <div class="acoes">
+                    <a href="/catalogo" class="botao btn-secundario">Continuar comprando</a>
+
+                    <form action="/carrinho/finalizar" method="post" style="margin: 0;">
+                        <button type="submit" class="btn-primario">
+                            ✅ Finalizar pedido
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+
+</html>

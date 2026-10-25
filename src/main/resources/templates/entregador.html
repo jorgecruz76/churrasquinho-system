@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entregador - Churrasquinho System</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        /* ─── Header mobile-friendly ─── */
+        .topo {
+            background-color: #8b0000;
+            color: white;
+            padding: 16px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .topo .linha-1 {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .topo h1 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .topo p {
+            margin: 4px 0 0;
+            font-size: 0.85rem;
+            opacity: 0.85;
+        }
+
+        .topo a {
+            padding: 8px 14px;
+            background-color: #ffe5e5;
+            color: #8b0000;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        /* ─── Abas ─── */
+        .abas {
+            display: flex;
+            background-color: white;
+            border-bottom: 1px solid #ddd;
+            overflow-x: auto;
+            position: sticky;
+            top: 68px;
+            z-index: 40;
+        }
+
+        .aba {
+            flex: 1;
+            min-width: 100px;
+            padding: 14px 10px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: 0.2s;
+            background: none;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            white-space: nowrap;
+        }
+
+        .aba.ativa {
+            color: #8b0000;
+            border-bottom-color: #8b0000;
+        }
+
+        .aba .contador {
+            display: inline-block;
+            margin-left: 4px;
+            padding: 1px 7px;
+            background-color: #8b0000;
+            color: white;
+            border-radius: 10px;
+            font-size: 11px;
+        }
+
+        .aba.ativa .contador {
+            background-color: #8b0000;
+        }
+
+        .aba:not(.ativa) .contador {
+            background-color: #ccc;
+        }
+
+        /* ─── Lista de pedidos ─── */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        .lista {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+            border-left: 6px solid #999;
+        }
+
+        .card[data-status="PRONTO"]            { border-color: #388e3c; }
+        .card[data-status="SAIU_PARA_ENTREGA"] { border-color: #7b1fa2; }
+        .card[data-status="ENTREGUE"]          { border-color: #2e7d32; opacity: 0.75; }
+
+        .card-conteudo {
+            padding: 16px;
+        }
+
+        .card-cabecalho {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .card-cabecalho h3 {
+            margin: 0;
+            font-size: 1.05rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .cliente-info {
+            background-color: #fafafa;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .cliente-info .linha {
+            display: flex;
+            gap: 8px;
+            margin: 2px 0;
+        }
+
+        .cliente-info .icone {
+            flex-shrink: 0;
+            width: 20px;
+        }
+
+        .valor {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #8b0000;
+            margin-bottom: 12px;
+        }
+
+        .botoes {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            color: white;
+        }
+
+        .btn-saiu {
+            background-color: #7b1fa2;
+        }
+
+        .btn-saiu:hover {
+            background-color: #5c1378;
+        }
+
+        .btn-entregue {
+            background-color: #2e7d32;
+        }
+
+        .btn-entregue:hover {
+            background-color: #1b5e20;
+        }
+
+        .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .vazio {
+            background-color: white;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .mensagem {
+            padding: 12px 16px;
+            border-radius: 5px;
+            margin-bottom: 16px;
+            border-left: 4px solid transparent;
+            font-size: 14px;
+        }
+
+        .mensagem.erro {
+            background-color: #ffebee;
+            color: #b71c1c;
+            border-left-color: #b71c1c;
+        }
+
+        .mensagem.sucesso {
+            background-color: #e8f5e9;
+            color: #1b5e20;
+            border-left-color: #2e7d32;
+        }
+
+        .mensagem.hidden { display: none; }
+
+        /* ─── Filtro de data (histórico) ─── */
+        .filtro-data {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .filtro-data label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #666;
+            width: 100%;
+            margin-bottom: 2px;
+        }
+
+        .filtro-data input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            min-width: 140px;
+        }
+
+        .filtro-data button {
+            padding: 10px 16px;
+            background-color: #8b0000;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* ─── Modal de observação ─── */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 16px;
+        }
+
+        .modal.hidden { display: none; }
+
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            padding: 24px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .modal-content h2 {
+            margin: 0 0 12px;
+            font-size: 1.15rem;
+        }
+
+        .modal-content p {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+
+        .modal-content textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .modal-actions .cancelar {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        .modal-actions .confirmar {
+            background-color: #2e7d32;
+            color: white;
+        }
+
+        /* ─── Histórico: card simplificado ─── */
+        .card.historico .card-cabecalho h3 {
+            font-size: 1rem;
+        }
+
+        .card.historico .info-data {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Header do entregador -->
+<div class="topo">
+    <div class="linha-1">
+        <div>
+            <h1>Churrasquinho System</h1>
+            <p>
+                Olá, <strong th:text="${session.usuarioNome}">Entregador</strong>!
+                · Entregas
+            </p>
+        </div>
+        <a href="/logout">Sair</a>
+    </div>
+</div>
+
+<!-- Abas -->
+<div class="abas">
+    <button class="aba ativa" data-aba="prontos">
+        📦 Prontos <span class="contador" id="contadorProntos">0</span>
+    </button>
+    <button class="aba" data-aba="em-rota">
+        🚚 Em rota <span class="contador" id="contadorEmRota">0</span>
+    </button>
+    <button class="aba" data-aba="historico">
+        ✅ Histórico
+    </button>
+</div>
+
+<main class="container">
+
+    <div id="mensagem" class="mensagem hidden"></div>
+
+    <!-- ══════════ ABA: PRONTOS ══════════ -->
+    <section id="aba-prontos">
+        <div id="listaProntos" class="lista"></div>
+    </section>
+
+    <!-- ══════════ ABA: EM ROTA ══════════ -->
+    <section id="aba-em-rota" style="display: none;">
+        <div id="listaEmRota" class="lista"></div>
+    </section>
+
+    <!-- ══════════ ABA: HISTÓRICO ══════════ -->
+    <section id="aba-historico" style="display: none;">
+        <div class="filtro-data">
+            <div style="flex: 1;">
+                <label for="dataInicio">De:</label>
+                <input type="date" id="dataInicio">
+            </div>
+            <div style="flex: 1;">
+                <label for="dataFim">Até:</label>
+                <input type="date" id="dataFim">
+            </div>
+            <div style="display: flex; align-items: flex-end;">
+                <button onclick="carregarHistorico()">Filtrar</button>
+            </div>
+        </div>
+        <div id="listaHistorico" class="lista"></div>
+    </section>
+
+</main>
+
+<!-- Modal de observação ao entregar -->
+<div id="modalEntrega" class="modal hidden">
+    <div class="modal-content">
+        <h2>Confirmar entrega</h2>
+        <p>Pedido #<strong id="modalPedidoId">0</strong></p>
+        <p>Deseja registrar alguma observação?</p>
+
+        <textarea id="observacao" placeholder="Ex.: Entregue na portaria, cliente ausente, etc. (opcional)" maxlength="500"></textarea>
+
+        <div class="modal-actions">
+            <button type="button" class="cancelar" onclick="fecharModal()">Cancelar</button>
+            <button type="button" class="confirmar" onclick="confirmarEntrega()">Confirmar entrega</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIGURAÇÃO
+   ============================================================ */
+const API_ENTREGADOR = '/pedidos/entregador';
+
+let pedidosProntos = [];
+let pedidosEmRota = [];
+let pedidoSelecionado = null;
+
+/* ============================================================
+   INICIALIZAÇÃO
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+    carregarPedidos();
+    configurarAbas();
+});
+
+function configurarAbas() {
+    document.querySelectorAll('.aba').forEach(aba => {
+        aba.addEventListener('click', () => {
+            const destino = aba.dataset.aba;
+
+            document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa'));
+            aba.classList.add('ativa');
+
+            document.getElementById('aba-prontos').style.display    = destino === 'prontos'    ? '' : 'none';
+            document.getElementById('aba-em-rota').style.display     = destino === 'em-rota'   ? '' : 'none';
+            document.getElementById('aba-historico').style.display   = destino === 'historico' ? '' : 'none';
+
+            if (destino === 'historico') {
+                carregarHistorico();
+            }
+        });
+    });
+}
+
+/* ============================================================
+   CARREGAMENTO PRINCIPAL
+   ============================================================ */
+async function carregarPedidos() {
+    esconderMensagem();
+
+    try {
+        const resp = await fetch(API_ENTREGADOR);
+        if (!resp.ok) throw new Error('Erro ao carregar pedidos.');
+
+        const pedidos = await resp.json();
+
+        pedidosProntos = pedidos.filter(p => p.status === 'PRONTO');
+        pedidosEmRota  = pedidos.filter(p => p.status === 'SAIU_PARA_ENTREGA');
+
+        renderizarProntos(pedidosProntos);
+        renderizarEmRota(pedidosEmRota);
+
+        document.getElementById('contadorProntos').textContent = pedidosProntos.length;
+        document.getElementById('contadorEmRota').textContent  = pedidosEmRota.length;
+
+    } catch (e) {
+        mostrarMensagem(e.message, 'erro');
+    }
+}
+
+/* ============================================================
+   RENDERIZAÇÃO — PRONTOS
+   ============================================================ */
+function renderizarProntos(lista) {
+    const container = document.getElementById('listaProntos');
+    container.innerHTML = '';
+
+    if (!lista.length) {
+        container.innerHTML = '<div class="vazio">Nenhum pedido pronto para entrega.</div>';
+        return;
+    }
+
+    lista.forEach(p => container.appendChild(criarCard(p, 'pronto')));
+}
+
+/* ============================================================
+   RENDERIZAÇÃO — EM ROTA
+   ============================================================ */
+function renderizarEmRota(lista) {
+    const container = document.getElementById('listaEmRota');
+    container.innerHTML = '';
+
+    if (!lista.length) {
+        container.innerHTML = '<div class="vazio">Nenhum pedido em rota.</div>';
+        return;
+    }
+
+    lista.forEach(p => container.appendChild(criarCard(p, 'em-rota')));
+}
+
+/* ============================================================
+   CRIAR CARD
+   ============================================================ */
+function criarCard(pedido, tipo) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.status = pedido.status;
+
+    const cliente = pedido.cliente || {};
+    const endereco = montarEndereco(cliente);
+    const nome = cliente.nome || 'Cliente';
+    const valor = Number(pedido.valorTotal || 0).toFixed(2).replace('.', ',');
+
+    const badgeCor = pedido.status === 'PRONTO' ? '#388e3c'
+                    : pedido.status === 'SAIU_PARA_ENTREGA' ? '#7b1fa2'
+                    : '#2e7d32';
+
+    const badgeTexto = pedido.status === 'PRONTO' ? 'PRONTO'
+                      : pedido.status === 'SAIU_PARA_ENTREGA' ? 'EM ROTA'
+                      : 'ENTREGUE';
+
+    let botaoHtml = '';
+
+    if (tipo === 'pronto') {
+        botaoHtml = `
+            <button class="btn btn-saiu" onclick="marcarSaiu(${pedido.id})">
+                🚚 Marcar como "Saiu para entrega"
+            </button>
+        `;
+    } else if (tipo === 'em-rota') {
+        botaoHtml = `
+            <button class="btn btn-entregue" onclick="abrirModalEntrega(${pedido.id})">
+                ✅ Confirmar entrega
+            </button>
+        `;
+    }
+
+    card.innerHTML = `
+        <div class="card-conteudo">
+            <div class="card-cabecalho">
+                <h3>Pedido #${pedido.id}</h3>
+                <span class="badge" style="background:${badgeCor}">${badgeTexto}</span>
+            </div>
+
+            <div class="cliente-info">
+                <div class="linha">
+                    <span class="icone">👤</span>
+                    <span>${nome}</span>
+                </div>
+                <div class="linha">
+                    <span class="icone">📍</span>
+                    <span>${endereco}</span>
+                </div>
+            </div>
+
+            <div class="valor">R$ ${valor}</div>
+
+            <div class="botoes">
+                ${botaoHtml}
+            </div>
+        </div>
+    `;
+
+    return card;
+}
+
+/* ============================================================
+   MONTAR ENDEREÇO
+   ============================================================ */
+function montarEndereco(cliente) {
+    const partes = [];
+
+    if (cliente.logradouro) {
+        let linha = cliente.logradouro;
+        if (cliente.numero) linha += `, ${cliente.numero}`;
+        partes.push(linha);
+    }
+
+    if (cliente.bairro) partes.push(cliente.bairro);
+
+    if (cliente.cidade) {
+        let linha = cliente.cidade;
+        if (cliente.estado) linha += `/${cliente.estado}`;
+        partes.push(linha);
+    }
+
+    if (cliente.cep) partes.push(`CEP ${cliente.cep}`);
+
+    return partes.length ? partes.join(' · ') : 'Endereço não cadastrado';
+}
+
+/* ============================================================
+   AÇÃO: MARCAR COMO "SAIU PARA ENTREGA"
+   ============================================================ */
+async function marcarSaiu(pedidoId) {
+    if (!confirm(`Confirmar que você vai entregar o pedido #${pedidoId}?`)) return;
+
+    try {
+        const resp = await fetch(
+            `/pedidos/${pedidoId}/status?status=SAIU_PARA_ENTREGA`,
+            { method: 'PATCH' }
+        );
+
+        if (!resp.ok) {
+            const erro = await resp.text();
+            throw new Error(erro || 'Não foi possível atualizar.');
+        }
+
+        mostrarMensagem('Pedido marcado como "Saiu para entrega".', 'sucesso');
+        await carregarPedidos();
+
+    } catch (e) {
+        mostrarMensagem(e.message, 'erro');
+    }
+}
+
+/* ============================================================
+   MODAL: CONFIRMAR ENTREGA
+   ============================================================ */
+function abrirModalEntrega(pedidoId) {
+    pedidoSelecionado = pedidoId;
+    document.getElementById('modalPedidoId').textContent = pedidoId;
+    document.getElementById('observacao').value = '';
+    document.getElementById('modalEntrega').classList.remove('hidden');
+}
+
+function fecharModal() {
+    document.getElementById('modalEntrega').classList.add('hidden');
+    pedidoSelecionado = null;
+}
+
+async function confirmarEntrega() {
+    if (!pedidoSelecionado) return;
+
+    const observacao = document.getElementById('observacao').value.trim();
+
+    try {
+        const params = new URLSearchParams();
+        params.append('status', 'ENTREGUE');
+        if (observacao) params.append('observacao', observacao);
+
+        const resp = await fetch(
+            `/pedidos/${pedidoSelecionado}/status?${params.toString()}`,
+            { method: 'PATCH' }
+        );
+
+        if (!resp.ok) {
+            const erro = await resp.text();
+            throw new Error(erro || 'Não foi possível confirmar a entrega.');
+        }
+
+        fecharModal();
+        mostrarMensagem('Entrega confirmada com sucesso!', 'sucesso');
+        await carregarPedidos();
+
+    } catch (e) {
+        mostrarMensagem(e.message, 'erro');
+    }
+}
+
+/* ============================================================
+   HISTÓRICO
+   ============================================================ */
+async function carregarHistorico() {
+    const container = document.getElementById('listaHistorico');
+    container.innerHTML = '<div class="vazio">Carregando histórico...</div>';
+
+    try {
+        const resp = await fetch('/pedidos');
+        if (!resp.ok) throw new Error('Erro ao carregar histórico.');
+
+        let pedidos = await resp.json();
+        pedidos = pedidos.filter(p => p.status === 'ENTREGUE');
+
+        // Filtro por data
+        const inicio = document.getElementById('dataInicio').value;
+        const fim    = document.getElementById('dataFim').value;
+
+        if (inicio) {
+            const dataIni = new Date(inicio + 'T00:00:00');
+            pedidos = pedidos.filter(p => {
+                const d = new Date(p.dataEntrega || p.dataCriacao);
+                return d >= dataIni;
+            });
+        }
+
+        if (fim) {
+            const dataFim = new Date(fim + 'T23:59:59');
+            pedidos = pedidos.filter(p => {
+                const d = new Date(p.dataEntrega || p.dataCriacao);
+                return d <= dataFim;
+            });
+        }
+
+        pedidos.sort((a, b) => b.id - a.id);
+
+        renderizarHistorico(pedidos);
+
+    } catch (e) {
+        container.innerHTML = `<div class="vazio">${e.message}</div>`;
+    }
+}
+
+function renderizarHistorico(lista) {
+    const container = document.getElementById('listaHistorico');
+    container.innerHTML = '';
+
+    if (!lista.length) {
+        container.innerHTML = '<div class="vazio">Nenhuma entrega no período.</div>';
+        return;
+    }
+
+    lista.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'card historico';
+        card.dataset.status = 'ENTREGUE';
+
+        const cliente = p.cliente || {};
+        const nome = cliente.nome || 'Cliente';
+        const valor = Number(p.valorTotal || 0).toFixed(2).replace('.', ',');
+        const dataEntrega = p.dataEntrega ? formatarData(p.dataEntrega) : '-';
+
+        card.innerHTML = `
+            <div class="card-conteudo">
+                <div class="card-cabecalho">
+                    <h3>Pedido #${p.id}</h3>
+                    <span class="badge" style="background:#2e7d32">ENTREGUE</span>
+                </div>
+                <div class="info-data">📅 ${dataEntrega}</div>
+                <div class="cliente-info">
+                    <div class="linha">
+                        <span class="icone">👤</span>
+                        <span>${nome}</span>
+                    </div>
+                </div>
+                <div class="valor">R$ ${valor}</div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function formatarData(iso) {
+    if (!iso) return '-';
+    return new Date(iso).toLocaleString('pt-BR');
+}
+
+function mostrarMensagem(texto, tipo) {
+    const el = document.getElementById('mensagem');
+    el.textContent = texto;
+    el.className = 'mensagem ' + tipo;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    clearTimeout(window.__msgTimeout);
+    window.__msgTimeout = setTimeout(esconderMensagem, 5000);
+}
+
+function esconderMensagem() {
+    document.getElementById('mensagem').classList.add('hidden');
+}
+</script>
+
+</body>
+
+</html>
