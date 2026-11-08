@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ops! Ocorreu um erro - Churrasquinho System</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        .icone { font-size: 60px; margin-bottom: 20px; }
+        h1 { color: #8b0000; margin-top: 0; }
+        p { color: #666; line-height: 1.5; margin-bottom: 24px; }
+        .codigo { font-weight: bold; font-size: 1.2rem; color: #b71c1c; }
+        .botao {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #8b0000;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .botao:hover { background-color: #650000; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="icone">🔥</div>
+        <h1>Ops! Algo deu errado.</h1>
+        <p>
+            Desculpe, ocorreu um erro inesperado no sistema.<br>
+            <span class="codigo" th:text="'Código do erro: ' + ${status}">Código: 500</span>
+        </p>
+        <p th:text="${message != null ? message : 'Por favor, tente novamente mais tarde.'}">
+            Por favor, tente novamente mais tarde.
+        </p>
+
+        <!-- Redireciona o usuário com base na sessão -->
+        <a href="/" class="botao" th:if="${session.usuarioTipo == null}">← Voltar ao Catálogo</a>
+        <a href="/admin" class="botao" th:if="${session.usuarioTipo != null and session.usuarioTipo.name() == 'ADM'}">← Voltar ao Menu Admin</a>
+        <a href="/catalogo" class="botao" th:if="${session.usuarioTipo != null and session.usuarioTipo.name() == 'CLIENTE'}">← Voltar ao Catálogo</a>
+        <a href="/entregador" class="botao" th:if="${session.usuarioTipo != null and session.usuarioTipo.name() == 'ENTREGADOR'}">← Voltar às Entregas</a>
+    </div>
+
+</body>
+</html>
