@@ -86,7 +86,7 @@ classDiagram
     
     Pedido "1" *-- "*" ItemPedido : contém
     Pedido "1" -- "1" Pagamento : possui
-    Pedido "1" -- "1" Entrega : possui
+    Pedido "1" -- "1" Entrega : possui```
 
     ---
 
