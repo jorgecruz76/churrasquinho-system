@@ -2,7 +2,7 @@
 
 
 
-Sistema completo de vendas e entregas para churrasquinho — projeto acadêmico.
+Sistema completo de vendas e entregas de churrasquinhos — projeto acadêmico.
 
 
 
@@ -10,7 +10,7 @@ Sistema completo de vendas e entregas para churrasquinho — projeto acadêmico.
 
 
 
-Sistema web para gerenciar todo o fluxo de uma churrasquinho: do catálogo de produtos até a entrega ao cliente, com diferentes níveis de acesso (ADM, Cliente e Entregador).
+Sistema web para gerenciar todo o fluxo de venda de churrasquinho: do catálogo de produtos até a entrega ao cliente, com diferentes níveis de acesso (ADM, Cliente e Entregador).
 
 
 
