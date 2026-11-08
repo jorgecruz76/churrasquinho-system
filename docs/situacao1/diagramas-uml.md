@@ -88,7 +88,6 @@ classDiagram
     Pedido "1" -- "1" Pagamento : possui
     Pedido "1" -- "1" Entrega : possui
     
-    ```
 
     ---
 
@@ -134,3 +133,4 @@ flowchart LR
     Entregador --> UC10
     Entregador --> UC11
     Entregador --> UC12
+    ```
