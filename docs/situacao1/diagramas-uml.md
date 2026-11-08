@@ -90,9 +90,9 @@ classDiagram
 
     flowchart LR
     %% Atores
-    Cliente((Cliente))
-    ADM((ADM))
-    Entregador((Entregador))
+    Cliente([Cliente])
+    ADM([ADM])
+    Entregador([Entregador])
 
     %% Casos de Uso
     UC1(Navegar no Catálogo)
@@ -127,4 +127,3 @@ classDiagram
     Entregador --> UC10
     Entregador --> UC11
     Entregador --> UC12
-    
