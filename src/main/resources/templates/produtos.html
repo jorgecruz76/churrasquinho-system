@@ -226,6 +226,12 @@
                     <input type="text" id="descricao">
                 </div>
 
+                <!-- CAMPO DE IMAGEM ADICIONADO AQUI -->
+                <div class="campo campo-completo">
+                    <label for="imagemUrl">URL/Nome da Imagem (Opcional)</label>
+                    <input type="text" id="imagemUrl" placeholder="Ex: carne.jpg ou https://...">
+                </div>
+
                 <div class="campo">
                     <label for="preco">Preço (R$)</label>
                     <input type="number" id="preco" min="0" step="0.01" required>
@@ -465,6 +471,9 @@
             document.getElementById('produtoId').value = produto.id;
             document.getElementById('nome').value = produto.nome;
             document.getElementById('descricao').value = produto.descricao ?? '';
+            // PREENCHE O CAMPO DE IMAGEM
+            document.getElementById('imagemUrl').value = produto.imagemUrl ?? '';
+            
             document.getElementById('preco').value = produto.preco;
             document.getElementById('estoque').value = produto.estoque;
             document.getElementById('categoria').value = produto.categoria.id;
@@ -545,6 +554,9 @@
             const produto = {
                 nome: document.getElementById('nome').value,
                 descricao: document.getElementById('descricao').value,
+                // INCLUI A IMAGEM NO ENVIO
+                imagemUrl: document.getElementById('imagemUrl').value || null,
+                
                 preco: Number(document.getElementById('preco').value),
                 estoque: Number(document.getElementById('estoque').value),
                 ativo: document.getElementById('ativo').value === 'true',

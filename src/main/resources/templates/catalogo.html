@@ -75,6 +75,14 @@
             font-size: 48px;
             font-weight: bold;
             background: linear-gradient(135deg, #8b0000, #650000);
+            overflow: hidden; /* NOVO: Impede que a imagem vaze do card */
+        }
+
+        /* NOVO: Ajusta a imagem para preencher o espaço sem distorcer */
+        .produto-imagem img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .produto-info {
@@ -256,7 +264,14 @@
                 th:attr="data-nome=${p.nome != null ? #strings.toLowerCase(p.nome) : ''},
                       data-categoria=${p.categoria != null and p.categoria.nome != null ? #strings.toLowerCase(p.categoria.nome) : ''}">
 
-                <div class="produto-imagem">🔥</div>
+                <!-- LÓGICA DE IMAGEM ADICIONADA AQUI -->
+                <!-- Se NÃO tiver imagem, mostra o emoji -->
+                <div class="produto-imagem" th:if="${p.imagemUrl == null or p.imagemUrl.isEmpty()}">🔥</div>
+                
+                <!-- Se TIVER imagem, busca de link externo ou da pasta static/imagens/ -->
+                <div class="produto-imagem" th:if="${p.imagemUrl != null and !p.imagemUrl.isEmpty()}">
+                    <img th:src="${#strings.startsWith(p.imagemUrl, 'http') ? p.imagemUrl : '/imagens/' + p.imagemUrl}" alt="Imagem do produto">
+                </div>
 
                 <div class="produto-info">
                     <span class="categoria" th:text="${p.categoria != null ? p.categoria.nome : 'Sem categoria'}">
