@@ -1,6 +1,9 @@
 # Churrasquinho System
 
-**Vídeo de Apresentação do Projeto:** [Assista aqui](link do vídeo)
+**Vídeo de Apresentação do Projeto:** 
+
+# Link Github
+[Acessar aqui](https://github.com/jorgecruz76/churrasquinho-system)
 
 Sistema completo de vendas e entregas de churrasquinhos — projeto acadêmico.
 

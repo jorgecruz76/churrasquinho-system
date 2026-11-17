@@ -4,7 +4,7 @@ Este documento registra os resultados dos testes de aceitação realizados por 5
 
 ---
 
-## Testador 1: Deivis
+## Testador 1: Deivhis
 *   **O que foi testado:** Teste local no notebook do criador. Testado o sistema como Cliente (realizar pedido), Admin (cadastrar produtos/categorias, acompanhar pedidos) e Entregador (confirmar entrega e pegar pedidos).
 *   **O que não funcionou (Bugs):** Apenas a parte do histórico.
 *   **Sugestões:** Usar kanban nos pedidos; na área de imagens, ter upload de imagens e mostrar em tempo real antes do salvamento.
