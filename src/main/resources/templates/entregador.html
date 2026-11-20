@@ -16,7 +16,7 @@
             color: #333;
         }
 
-        /* ─── Header mobile-friendly ─── */
+        /* Header mobile-friendly */
         .topo {
             background-color: #8b0000;
             color: white;
@@ -34,16 +34,8 @@
             gap: 12px;
         }
 
-        .topo h1 {
-            margin: 0;
-            font-size: 1.1rem;
-        }
-
-        .topo p {
-            margin: 4px 0 0;
-            font-size: 0.85rem;
-            opacity: 0.85;
-        }
+        .topo h1 { margin: 0; font-size: 1.1rem; }
+        .topo p { margin: 4px 0 0; font-size: 0.85rem; opacity: 0.85; }
 
         .topo a {
             padding: 8px 14px;
@@ -55,7 +47,7 @@
             font-size: 13px;
         }
 
-        /* ─── Abas ─── */
+        /* Abas */
         .abas {
             display: flex;
             background-color: white;
@@ -99,15 +91,11 @@
             font-size: 11px;
         }
 
-        .aba.ativa .contador {
-            background-color: #8b0000;
-        }
-
         .aba:not(.ativa) .contador {
             background-color: #ccc;
         }
 
-        /* ─── Lista de pedidos ─── */
+        /* Lista de pedidos */
         .container {
             max-width: 600px;
             margin: 0 auto;
@@ -132,9 +120,7 @@
         .card[data-status="SAIU_PARA_ENTREGA"] { border-color: #7b1fa2; }
         .card[data-status="ENTREGUE"]          { border-color: #2e7d32; opacity: 0.75; }
 
-        .card-conteudo {
-            padding: 16px;
-        }
+        .card-conteudo { padding: 16px; }
 
         .card-cabecalho {
             display: flex;
@@ -144,10 +130,7 @@
             margin-bottom: 12px;
         }
 
-        .card-cabecalho h3 {
-            margin: 0;
-            font-size: 1.05rem;
-        }
+        .card-cabecalho h3 { margin: 0; font-size: 1.05rem; }
 
         .badge {
             display: inline-block;
@@ -173,10 +156,7 @@
             margin: 2px 0;
         }
 
-        .cliente-info .icone {
-            flex-shrink: 0;
-            width: 20px;
-        }
+        .cliente-info .icone { flex-shrink: 0; width: 20px; }
 
         .valor {
             font-size: 1.1rem;
@@ -203,26 +183,11 @@
             color: white;
         }
 
-        .btn-saiu {
-            background-color: #7b1fa2;
-        }
+        .btn-saiu { background-color: #7b1fa2; }
+        .btn-saiu:hover { background-color: #5c1378; }
 
-        .btn-saiu:hover {
-            background-color: #5c1378;
-        }
-
-        .btn-entregue {
-            background-color: #2e7d32;
-        }
-
-        .btn-entregue:hover {
-            background-color: #1b5e20;
-        }
-
-        .btn:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
+        .btn-entregue { background-color: #2e7d32; }
+        .btn-entregue:hover { background-color: #1b5e20; }
 
         .vazio {
             background-color: white;
@@ -255,7 +220,7 @@
 
         .mensagem.hidden { display: none; }
 
-        /* ─── Filtro de data (histórico) ─── */
+        /* Filtro de data (histórico) */
         .filtro-data {
             display: flex;
             gap: 8px;
@@ -291,7 +256,7 @@
             cursor: pointer;
         }
 
-        /* ─── Modal de observação ─── */
+        /* Modal de observação */
         .modal {
             position: fixed;
             inset: 0;
@@ -314,16 +279,8 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
 
-        .modal-content h2 {
-            margin: 0 0 12px;
-            font-size: 1.15rem;
-        }
-
-        .modal-content p {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 12px;
-        }
+        .modal-content h2 { margin: 0 0 12px; font-size: 1.15rem; }
+        .modal-content p { font-size: 13px; color: #666; margin-bottom: 12px; }
 
         .modal-content textarea {
             width: 100%;
@@ -352,26 +309,12 @@
             cursor: pointer;
         }
 
-        .modal-actions .cancelar {
-            background-color: #e0e0e0;
-            color: #333;
-        }
+        .modal-actions .cancelar { background-color: #e0e0e0; color: #333; }
+        .modal-actions .confirmar { background-color: #2e7d32; color: white; }
 
-        .modal-actions .confirmar {
-            background-color: #2e7d32;
-            color: white;
-        }
-
-        /* ─── Histórico: card simplificado ─── */
-        .card.historico .card-cabecalho h3 {
-            font-size: 1rem;
-        }
-
-        .card.historico .info-data {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 8px;
-        }
+        /* Histórico: card simplificado */
+        .card.historico .card-cabecalho h3 { font-size: 1rem; }
+        .card.historico .info-data { font-size: 12px; color: #666; margin-bottom: 8px; }
     </style>
 </head>
 
@@ -382,10 +325,7 @@
     <div class="linha-1">
         <div>
             <h1>Churrasquinho System</h1>
-            <p>
-                Olá, <strong th:text="${session.usuarioNome}">Entregador</strong>!
-                · Entregas
-            </p>
+            <p>Olá, <strong th:text="${session.usuarioNome}">Entregador</strong>! · Entregas</p>
         </div>
         <a href="/logout">Sair</a>
     </div>
@@ -394,13 +334,13 @@
 <!-- Abas -->
 <div class="abas">
     <button class="aba ativa" data-aba="prontos">
-        📦 Prontos <span class="contador" id="contadorProntos">0</span>
+        Prontos <span class="contador" id="contadorProntos">0</span>
     </button>
     <button class="aba" data-aba="em-rota">
-        🚚 Em rota <span class="contador" id="contadorEmRota">0</span>
+        Em rota <span class="contador" id="contadorEmRota">0</span>
     </button>
     <button class="aba" data-aba="historico">
-        ✅ Histórico
+        Histórico
     </button>
 </div>
 
@@ -408,17 +348,17 @@
 
     <div id="mensagem" class="mensagem hidden"></div>
 
-    <!-- ══════════ ABA: PRONTOS ══════════ -->
+    <!-- ABA: PRONTOS -->
     <section id="aba-prontos">
         <div id="listaProntos" class="lista"></div>
     </section>
 
-    <!-- ══════════ ABA: EM ROTA ══════════ -->
+    <!-- ABA: EM ROTA -->
     <section id="aba-em-rota" style="display: none;">
         <div id="listaEmRota" class="lista"></div>
     </section>
 
-    <!-- ══════════ ABA: HISTÓRICO ══════════ -->
+    <!-- ABA: HISTÓRICO -->
     <section id="aba-historico" style="display: none;">
         <div class="filtro-data">
             <div style="flex: 1;">
@@ -431,6 +371,7 @@
             </div>
             <div style="display: flex; align-items: flex-end;">
                 <button onclick="carregarHistorico()">Filtrar</button>
+                 <button onclick="limparFiltro()" style="background-color: #e0e0e0; color: #333;">Limpar</button>
             </div>
         </div>
         <div id="listaHistorico" class="lista"></div>
@@ -459,6 +400,7 @@
    CONFIGURAÇÃO
    ============================================================ */
 const API_ENTREGADOR = '/pedidos/entregador';
+const API_HISTORICO = '/pedidos/entregador/historico';
 
 let pedidosProntos = [];
 let pedidosEmRota = [];
@@ -492,7 +434,7 @@ function configurarAbas() {
 }
 
 /* ============================================================
-   CARREGAMENTO PRINCIPAL
+   CARREGAMENTO PRINCIPAL (PRONTOS E EM ROTA)
    ============================================================ */
 async function carregarPedidos() {
     esconderMensagem();
@@ -518,7 +460,7 @@ async function carregarPedidos() {
 }
 
 /* ============================================================
-   RENDERIZAÇÃO — PRONTOS
+   RENDERIZAÇÃO - PRONTOS
    ============================================================ */
 function renderizarProntos(lista) {
     const container = document.getElementById('listaProntos');
@@ -533,7 +475,7 @@ function renderizarProntos(lista) {
 }
 
 /* ============================================================
-   RENDERIZAÇÃO — EM ROTA
+   RENDERIZAÇÃO - EM ROTA
    ============================================================ */
 function renderizarEmRota(lista) {
     const container = document.getElementById('listaEmRota');
@@ -548,7 +490,7 @@ function renderizarEmRota(lista) {
 }
 
 /* ============================================================
-   CRIAR CARD
+   CRIAR CARD (PRONTOS E EM ROTA)
    ============================================================ */
 function criarCard(pedido, tipo) {
     const card = document.createElement('div');
@@ -573,13 +515,13 @@ function criarCard(pedido, tipo) {
     if (tipo === 'pronto') {
         botaoHtml = `
             <button class="btn btn-saiu" onclick="marcarSaiu(${pedido.id})">
-                🚚 Marcar como "Saiu para entrega"
+                Marcar como "Saiu para entrega"
             </button>
         `;
     } else if (tipo === 'em-rota') {
         botaoHtml = `
             <button class="btn btn-entregue" onclick="abrirModalEntrega(${pedido.id})">
-                ✅ Confirmar entrega
+                Confirmar entrega
             </button>
         `;
     }
@@ -710,18 +652,25 @@ async function confirmarEntrega() {
 /* ============================================================
    HISTÓRICO
    ============================================================ */
+function limparFiltro() {
+    document.getElementById('dataInicio').value = '';
+    document.getElementById('dataFim').value = '';
+    carregarHistorico(); // Recarrega a lista mostrando tudo
+}
+
 async function carregarHistorico() {
     const container = document.getElementById('listaHistorico');
     container.innerHTML = '<div class="vazio">Carregando histórico...</div>';
 
     try {
-        const resp = await fetch('/pedidos');
+        // AQUI ESTÁ A CORREÇÃO: Busca na rota específica do entregador
+        const resp = await fetch(API_HISTORICO);
+        
         if (!resp.ok) throw new Error('Erro ao carregar histórico.');
 
         let pedidos = await resp.json();
-        pedidos = pedidos.filter(p => p.status === 'ENTREGUE');
 
-        // Filtro por data
+        // Filtro de data (no frontend)
         const inicio = document.getElementById('dataInicio').value;
         const fim    = document.getElementById('dataFim').value;
 
@@ -741,8 +690,6 @@ async function carregarHistorico() {
             });
         }
 
-        pedidos.sort((a, b) => b.id - a.id);
-
         renderizarHistorico(pedidos);
 
     } catch (e) {
@@ -755,7 +702,7 @@ function renderizarHistorico(lista) {
     container.innerHTML = '';
 
     if (!lista.length) {
-        container.innerHTML = '<div class="vazio">Nenhuma entrega no período.</div>';
+        container.innerHTML = '<div class="vazio">Nenhuma entrega encontrada no período.</div>';
         return;
     }
 

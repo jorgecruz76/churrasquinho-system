@@ -55,7 +55,7 @@ public class AdminInterceptor implements HandlerInterceptor {
 
         // ─── Rotas exclusivas do ENTREGADOR ───
         boolean exigeEntregador = uri.equals("/entregador")
-                || uri.equals("/pedidos/entregador");
+                || uri.startsWith("/pedidos/entregador");
 
         // ─── PATCH /pedidos/{id}/status (ADM ou ENTREGADOR) ───
         boolean patchStatusPedido = "PATCH".equalsIgnoreCase(metodo)
@@ -66,7 +66,7 @@ public class AdminInterceptor implements HandlerInterceptor {
                 || uri.startsWith("/usuarios")
                 || uri.startsWith("/clientes")
                 || (uri.startsWith("/pedidos")
-                        && !uri.equals("/pedidos/entregador")
+                        && !uri.startsWith("/pedidos/entregador")
                         && !patchStatusPedido)
                 || uri.startsWith("/pagamentos")
                 || uri.startsWith("/entregas")

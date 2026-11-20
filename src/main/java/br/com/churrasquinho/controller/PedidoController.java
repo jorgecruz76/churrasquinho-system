@@ -3,6 +3,7 @@ package br.com.churrasquinho.controller;
 import br.com.churrasquinho.entity.Pedido;
 import br.com.churrasquinho.enums.StatusPedido;
 import br.com.churrasquinho.service.PedidoService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,11 +45,22 @@ public class PedidoController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<?> atualizarStatus(
             @PathVariable Long id,
-            @RequestParam StatusPedido status) {
+            @RequestParam StatusPedido status,
+            @RequestParam(required = false) String observacao,
+            HttpSession session) {
 
         try {
+            // Pega o ID do entregador logado na sessão (se for um entregador)
+            Long entregadorId = null;
+            Object tipo = session.getAttribute("usuarioTipo");
+            
+            if (tipo != null && "ENTREGADOR".equals(tipo.toString())) {
+                entregadorId = (Long) session.getAttribute("usuarioId");
+            }
+
             return ResponseEntity.ok(
-                    pedidoService.atualizarStatus(id, status));
+                    pedidoService.atualizarStatus(id, status, entregadorId, observacao));
+                    
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -60,8 +72,7 @@ public class PedidoController {
     }
 
     @GetMapping("/entregador/historico")
-    public ResponseEntity<List<Pedido>> listarHistoricoEntregador() {
-        return ResponseEntity.ok(
-                pedidoService.listarHistoricoParaEntregador());
+    public ResponseEntity<List<Pedido>> listarHistoricoParaEntregador() {
+        return ResponseEntity.ok(pedidoService.listarHistoricoParaEntregador());
     }
 }

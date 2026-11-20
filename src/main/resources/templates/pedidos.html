@@ -686,6 +686,7 @@
             <div class="detalhes-linha"><strong>Criação:</strong> ${formatarData(pedido.dataCriacao)}</div>
             <div class="detalhes-linha"><strong>Saída:</strong> ${pedido.dataSaida ? formatarData(pedido.dataSaida) : '-'}</div>
             <div class="detalhes-linha"><strong>Entrega:</strong> ${pedido.dataEntrega ? formatarData(pedido.dataEntrega) : '-'}</div>
+            <div class="detalhes-linha"><strong>Obs. da Entrega:</strong> ${pedido.observacaoEntrega ? pedido.observacaoEntrega : '-'}</div>
 
             <h3 style="margin-top:16px">Itens</h3>
             <table class="itens">
